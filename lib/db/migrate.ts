@@ -1,19 +1,20 @@
 import { config } from 'dotenv';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
-import postgres from 'postgres';
+import { migrate } from 'drizzle-orm/neon-http/migrator';
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from "@neondatabase/serverless";
+
 
 config({
   path: '.env.local',
 });
 
 const runMigrate = async () => {
-  if (!process.env.POSTGRES_URL) {
+  if (!process.env.DATABASE_URL) {
     throw new Error('POSTGRES_URL is not defined');
   }
 
-  const connection = postgres(process.env.POSTGRES_URL, { max: 1 });
-  const db = drizzle(connection);
+  const sql = neon(process.env.DATABASE_URL!);
+  const db = drizzle(sql);
 
   console.log('⏳ Running migrations...');
 
