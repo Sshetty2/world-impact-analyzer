@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 'use client';
 
 import * as React from 'react';
@@ -55,7 +56,8 @@ const SidebarProvider = React.forwardRef<
     open?: boolean;
     onOpenChange?:(open: boolean) => void;
       }
-      >
+      // eslint-disable-next-line no-extra-parens
+      >(
       (
         {
           defaultOpen = true,
@@ -76,6 +78,7 @@ const SidebarProvider = React.forwardRef<
         const [_open, _setOpen] = React.useState(defaultOpen);
         const open = openProp ?? _open;
         const setOpen = React.useCallback(
+          // eslint-disable-next-line no-shadow
           (value: boolean | ((value: boolean) => boolean)) => {
             const openState = typeof value === 'function' ? value(open) : value;
 
@@ -92,9 +95,7 @@ const SidebarProvider = React.forwardRef<
         );
 
         // Helper to toggle the sidebar.
-        const toggleSidebar = React.useCallback(() => (isMobile
-        ? setOpenMobile((open) => !open)
-        : setOpen((open) => !open)), [isMobile, setOpen, setOpenMobile]);
+        const toggleSidebar = React.useCallback(() => (isMobile ? setOpenMobile(__open => !__open) : setOpen(__open => !__open)), [isMobile, setOpen, setOpenMobile]);
 
         // Adds a keyboard shortcut to toggle the sidebar.
         React.useEffect(() => {
@@ -135,7 +136,7 @@ const SidebarProvider = React.forwardRef<
             openMobile,
             setOpenMobile,
             toggleSidebar
-          ],
+          ]
         );
 
         return (
@@ -161,7 +162,7 @@ const SidebarProvider = React.forwardRef<
             </TooltipProvider>
           </SidebarContext.Provider>
         );
-      };
+      });
 SidebarProvider.displayName = 'SidebarProvider';
 
 const Sidebar = React.forwardRef<

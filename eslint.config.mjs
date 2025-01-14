@@ -35,7 +35,7 @@ export default [
       '**/next.config.*',
       '**/postcss.config.*',
       '**/jsconfig.json',
-      '**/vite-env.d.ts'
+      '**/next-env.d.ts'
     ]
   },
   ...compat.extends(
