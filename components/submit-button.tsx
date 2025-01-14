@@ -6,9 +6,9 @@ import { LoaderIcon } from '@/components/icons';
 
 import { Button } from './ui/button';
 
-export function SubmitButton({
+export function SubmitButton ({
   children,
-  isSuccessful,
+  isSuccessful
 }: {
   children: React.ReactNode;
   isSuccessful: boolean;
@@ -25,12 +25,14 @@ export function SubmitButton({
       {children}
 
       {(pending || isSuccessful) && (
-        <span className="animate-spin absolute right-4">
+        <span className="absolute right-4 animate-spin">
           <LoaderIcon />
         </span>
       )}
 
-      <output aria-live="polite" className="sr-only">
+      <output
+        aria-live="polite"
+        className="sr-only">
         {pending || isSuccessful ? 'Loading' : 'Submit form'}
       </output>
     </Button>

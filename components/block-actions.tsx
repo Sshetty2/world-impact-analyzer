@@ -17,20 +17,22 @@ interface BlockActionsProps {
   setConsoleOutputs: Dispatch<SetStateAction<Array<ConsoleOutput>>>;
 }
 
-function PureBlockActions({
+function PureBlockActions ({
   block,
   handleVersionChange,
   currentVersionIndex,
   isCurrentVersion,
   mode,
-  setConsoleOutputs,
+  setConsoleOutputs
 }: BlockActionsProps) {
   const [_, copyToClipboard] = useCopyToClipboard();
 
   return (
     <div className="flex flex-row gap-1">
       {block.kind === 'code' && (
-        <RunCodeButton block={block} setConsoleOutputs={setConsoleOutputs} />
+        <RunCodeButton
+          block={block}
+          setConsoleOutputs={setConsoleOutputs} />
       )}
 
       {block.kind === 'text' && (
@@ -40,9 +42,7 @@ function PureBlockActions({
               variant="outline"
               className={cn(
                 'p-2 h-fit !pointer-events-auto dark:hover:bg-zinc-700',
-                {
-                  'bg-muted': mode === 'diff',
-                },
+                { 'bg-muted': mode === 'diff' }
               )}
               onClick={() => {
                 handleVersionChange('toggle');
@@ -62,7 +62,7 @@ function PureBlockActions({
         <TooltipTrigger asChild>
           <Button
             variant="outline"
-            className="p-2 h-fit dark:hover:bg-zinc-700 !pointer-events-auto"
+            className="!pointer-events-auto h-fit p-2 dark:hover:bg-zinc-700"
             onClick={() => {
               handleVersionChange('prev');
             }}
@@ -78,7 +78,7 @@ function PureBlockActions({
         <TooltipTrigger asChild>
           <Button
             variant="outline"
-            className="p-2 h-fit dark:hover:bg-zinc-700 !pointer-events-auto"
+            className="!pointer-events-auto h-fit p-2 dark:hover:bg-zinc-700"
             onClick={() => {
               handleVersionChange('next');
             }}
@@ -94,7 +94,7 @@ function PureBlockActions({
         <TooltipTrigger asChild>
           <Button
             variant="outline"
-            className="p-2 h-fit dark:hover:bg-zinc-700"
+            className="h-fit p-2 dark:hover:bg-zinc-700"
             onClick={() => {
               copyToClipboard(block.content);
               toast.success('Copied to clipboard!');
@@ -111,10 +111,17 @@ function PureBlockActions({
 }
 
 export const BlockActions = memo(PureBlockActions, (prevProps, nextProps) => {
-  if (prevProps.block.status !== nextProps.block.status) return false;
-  if (prevProps.currentVersionIndex !== nextProps.currentVersionIndex)
+  if (prevProps.block.status !== nextProps.block.status) {
     return false;
-  if (prevProps.isCurrentVersion !== nextProps.isCurrentVersion) return false;
+  }
+
+  if (prevProps.currentVersionIndex !== nextProps.currentVersionIndex) {
+    return false;
+  }
+
+  if (prevProps.isCurrentVersion !== nextProps.isCurrentVersion) {
+    return false;
+  }
 
   return true;
 });

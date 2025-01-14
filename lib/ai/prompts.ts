@@ -31,8 +31,7 @@ This is a guide for using blocks tools: \`createDocument\` and \`updateDocument\
 Do not update document right after creating it. Wait for user feedback or request to update it.
 `;
 
-export const regularPrompt =
-  'You are a friendly assistant! Keep your responses concise and helpful.';
+export const regularPrompt = 'You are a friendly assistant! Keep your responses concise and helpful.';
 
 export const systemPrompt = `${regularPrompt}\n\n${blocksPrompt}`;
 
@@ -66,18 +65,13 @@ print(f"Factorial of 5 is: {factorial(5)}")
 
 export const updateDocumentPrompt = (
   currentContent: string | null,
-  type: BlockKind,
-) =>
-  type === 'text'
-    ? `\
+  type: BlockKind
+) => (type === 'text' ? `\
 Improve the following contents of the document based on the given prompt.
 
 ${currentContent}
-`
-    : type === 'code'
-      ? `\
+` : type === 'code' ? `\
 Improve the following code snippet based on the given prompt.
 
 ${currentContent}
-`
-      : '';
+` : '');

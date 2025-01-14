@@ -3,10 +3,10 @@ import { BlockKind } from '@/components/block';
 import {
   deleteDocumentsByIdAfterTimestamp,
   getDocumentsById,
-  saveDocument,
+  saveDocument
 } from '@/lib/db/queries';
 
-export async function GET(request: Request) {
+export async function GET (request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
 
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
   return Response.json(documents, { status: 200 });
 }
 
-export async function POST(request: Request) {
+export async function POST (request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
 
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   const {
     content,
     title,
-    kind,
+    kind
   }: { content: string; title: string; kind: BlockKind } = await request.json();
 
   if (session.user?.id) {
@@ -61,15 +61,16 @@ export async function POST(request: Request) {
       content,
       title,
       kind,
-      userId: session.user.id,
+      userId: session.user.id
     });
 
     return Response.json(document, { status: 200 });
   }
+
   return new Response('Unauthorized', { status: 401 });
 }
 
-export async function PATCH(request: Request) {
+export async function PATCH (request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
 
@@ -95,7 +96,7 @@ export async function PATCH(request: Request) {
 
   await deleteDocumentsByIdAfterTimestamp({
     id,
-    timestamp: new Date(timestamp),
+    timestamp: new Date(timestamp)
   });
 
   return new Response('Deleted', { status: 200 });

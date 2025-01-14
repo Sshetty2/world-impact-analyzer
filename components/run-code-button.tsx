@@ -6,7 +6,7 @@ import {
   useCallback,
   useState,
   useEffect,
-  memo,
+  memo
 } from 'react';
 import type { ConsoleOutput, ConsoleOutputContent, UIBlock } from './block';
 import { Button } from './ui/button';
@@ -46,10 +46,10 @@ const OUTPUT_HANDLERS = {
   `,
   basic: `
     # Basic output capture setup
-  `,
+  `
 };
 
-function detectRequiredHandlers(code: string): string[] {
+function detectRequiredHandlers (code: string): string[] {
   const handlers: string[] = ['basic'];
 
   if (code.includes('matplotlib') || code.includes('plt.')) {
@@ -59,31 +59,29 @@ function detectRequiredHandlers(code: string): string[] {
   return handlers;
 }
 
-export function PureRunCodeButton({
-  setConsoleOutputs,
-}: {
+export function PureRunCodeButton ({ setConsoleOutputs }: {
   block: UIBlock;
   setConsoleOutputs: Dispatch<SetStateAction<Array<ConsoleOutput>>>;
 }) {
   const isPython = true;
   const [pyodide, setPyodide] = useState<any>(null);
 
-  const codeContent = useBlockSelector((state) => state.content);
+  const codeContent = useBlockSelector(state => state.content);
   const isBlockStreaming = useBlockSelector(
-    (state) => state.status === 'streaming',
+    state => state.status === 'streaming'
   );
 
   const loadAndRunPython = useCallback(async () => {
     const runId = generateUUID();
     const stdOutputs: Array<ConsoleOutputContent> = [];
 
-    setConsoleOutputs((outputs) => [
+    setConsoleOutputs(outputs => [
       ...outputs,
       {
-        id: runId,
+        id      : runId,
         contents: [],
-        status: 'in_progress',
-      },
+        status  : 'in_progress'
+      }
     ]);
 
     let currentPyodideInstance = pyodide;
@@ -92,9 +90,7 @@ export function PureRunCodeButton({
       try {
         if (!currentPyodideInstance) {
           // @ts-expect-error - loadPyodide is not defined
-          const newPyodideInstance = await globalThis.loadPyodide({
-            indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/',
-          });
+          const newPyodideInstance = await globalThis.loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/' });
 
           setPyodide(null);
           setPyodide(newPyodideInstance);
@@ -104,37 +100,39 @@ export function PureRunCodeButton({
         currentPyodideInstance.setStdout({
           batched: (output: string) => {
             stdOutputs.push({
-              type: output.startsWith('data:image/png;base64')
-                ? 'image'
-                : 'text',
-              value: output,
+              type : output.startsWith('data:image/png;base64') ? 'image' : 'text',
+              value: output
             });
-          },
+          }
         });
 
         await currentPyodideInstance.loadPackagesFromImports(codeContent, {
           messageCallback: (message: string) => {
-            setConsoleOutputs((outputs) => [
-              ...outputs.filter((output) => output.id !== runId),
+            setConsoleOutputs(outputs => [
+              ...outputs.filter(output => output.id !== runId),
               {
-                id: runId,
-                contents: [{ type: 'text', value: message }],
-                status: 'loading_packages',
-              },
+                id      : runId,
+                contents: [{
+                  type : 'text',
+                  value: message
+                }],
+                status: 'loading_packages'
+              }
             ]);
-          },
+          }
         });
 
         const requiredHandlers = detectRequiredHandlers(codeContent);
+
         for (const handler of requiredHandlers) {
           if (OUTPUT_HANDLERS[handler as keyof typeof OUTPUT_HANDLERS]) {
             await currentPyodideInstance.runPythonAsync(
-              OUTPUT_HANDLERS[handler as keyof typeof OUTPUT_HANDLERS],
+              OUTPUT_HANDLERS[handler as keyof typeof OUTPUT_HANDLERS]
             );
 
             if (handler === 'matplotlib') {
               await currentPyodideInstance.runPythonAsync(
-                'setup_matplotlib_output()',
+                'setup_matplotlib_output()'
               );
             }
           }
@@ -142,32 +140,34 @@ export function PureRunCodeButton({
 
         await currentPyodideInstance.runPythonAsync(codeContent);
 
-        setConsoleOutputs((outputs) => [
-          ...outputs.filter((output) => output.id !== runId),
+        setConsoleOutputs(outputs => [
+          ...outputs.filter(output => output.id !== runId),
           {
-            id: generateUUID(),
-            contents: stdOutputs.filter((output) => output.value.trim().length),
-            status: 'completed',
-          },
+            id      : generateUUID(),
+            contents: stdOutputs.filter(output => output.value.trim().length),
+            status  : 'completed'
+          }
         ]);
       } catch (error: any) {
-        setConsoleOutputs((outputs) => [
-          ...outputs.filter((output) => output.id !== runId),
+        setConsoleOutputs(outputs => [
+          ...outputs.filter(output => output.id !== runId),
           {
-            id: runId,
-            contents: [{ type: 'text', value: error.message }],
-            status: 'failed',
-          },
+            id      : runId,
+            contents: [{
+              type : 'text',
+              value: error.message
+            }],
+            status: 'failed'
+          }
         ]);
       }
     }
   }, [pyodide, codeContent, isPython, setConsoleOutputs]);
 
-  useEffect(() => {
-    return () => {
-      if (pyodide) {
-        try {
-          pyodide.runPythonAsync(`
+  useEffect(() => () => {
+    if (pyodide) {
+      try {
+        pyodide.runPythonAsync(`
             import sys
             import gc
 
@@ -180,17 +180,16 @@ export function PureRunCodeButton({
 
             gc.collect()
           `);
-        } catch (error) {
-          console.warn('Cleanup failed:', error);
-        }
+      } catch (error) {
+        console.warn('Cleanup failed:', error);
       }
-    };
+    }
   }, [pyodide]);
 
   return (
     <Button
       variant="outline"
-      className="py-1.5 px-2 h-fit dark:hover:bg-zinc-700"
+      className="h-fit px-2 py-1.5 dark:hover:bg-zinc-700"
       onClick={() => {
         startTransition(() => {
           loadAndRunPython();
@@ -204,7 +203,9 @@ export function PureRunCodeButton({
 }
 
 export const RunCodeButton = memo(PureRunCodeButton, (prevProps, nextProps) => {
-  if (prevProps.block.status !== nextProps.block.status) return false;
+  if (prevProps.block.status !== nextProps.block.status) {
+    return false;
+  }
 
   return true;
 });

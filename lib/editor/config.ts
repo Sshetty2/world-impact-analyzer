@@ -10,27 +10,29 @@ import { buildContentFromDocument } from './functions';
 
 export const documentSchema = new Schema({
   nodes: addListNodes(schema.spec.nodes, 'paragraph block*', 'block'),
-  marks: schema.spec.marks,
+  marks: schema.spec.marks
 });
 
-export function headingRule(level: number) {
+export function headingRule (level: number) {
   return textblockTypeInputRule(
     new RegExp(`^(#{1,${level}})\\s$`),
     documentSchema.nodes.heading,
-    () => ({ level }),
+    () => ({ level })
   );
 }
 
 export const handleTransaction = ({
   transaction,
   editorRef,
-  saveContent,
+  saveContent
 }: {
   transaction: Transaction;
   editorRef: MutableRefObject<EditorView | null>;
   saveContent: (updatedContent: string, debounce: boolean) => void;
 }) => {
-  if (!editorRef || !editorRef.current) return;
+  if (!editorRef || !editorRef.current) {
+    return;
+  }
 
   const newState = editorRef.current.state.apply(transaction);
   editorRef.current.updateState(newState);

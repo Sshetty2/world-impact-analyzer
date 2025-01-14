@@ -2,7 +2,7 @@ import type {
   Attachment,
   ChatRequestOptions,
   CreateMessage,
-  Message,
+  Message
 } from 'ai';
 import { formatDistance } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -12,7 +12,7 @@ import {
   type SetStateAction,
   useCallback,
   useEffect,
-  useState,
+  useState
 } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { useDebounceCallback, useWindowSize } from 'usehooks-ts';
@@ -63,7 +63,7 @@ export interface ConsoleOutput {
   contents: Array<ConsoleOutputContent>;
 }
 
-function PureBlock({
+function PureBlock ({
   chatId,
   input,
   setInput,
@@ -77,7 +77,7 @@ function PureBlock({
   setMessages,
   reload,
   votes,
-  isReadonly,
+  isReadonly
 }: {
   chatId: string;
   input: string;
@@ -109,29 +109,23 @@ function PureBlock({
   const {
     data: documents,
     isLoading: isDocumentsFetching,
-    mutate: mutateDocuments,
+    mutate: mutateDocuments
   } = useSWR<Array<Document>>(
-    block.documentId !== 'init' && block.status !== 'streaming'
-      ? `/api/document?id=${block.documentId}`
-      : null,
-    fetcher,
+    block.documentId !== 'init' && block.status !== 'streaming' ? `/api/document?id=${block.documentId}` : null,
+    fetcher
   );
 
   const { data: suggestions } = useSWR<Array<Suggestion>>(
-    documents && block && block.status !== 'streaming'
-      ? `/api/suggestions?documentId=${block.documentId}`
-      : null,
+    documents && block && block.status !== 'streaming' ? `/api/suggestions?documentId=${block.documentId}` : null,
     fetcher,
-    {
-      dedupingInterval: 5000,
-    },
+    { dedupingInterval: 5000 }
   );
 
   const [mode, setMode] = useState<'edit' | 'diff'>('edit');
   const [document, setDocument] = useState<Document | null>(null);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
   const [consoleOutputs, setConsoleOutputs] = useState<Array<ConsoleOutput>>(
-    [],
+    []
   );
 
   const { open: isSidebarOpen } = useSidebar();
@@ -143,9 +137,9 @@ function PureBlock({
       if (mostRecentDocument) {
         setDocument(mostRecentDocument);
         setCurrentVersionIndex(documents.length - 1);
-        setBlock((currentBlock) => ({
+        setBlock(currentBlock => ({
           ...currentBlock,
-          content: mostRecentDocument.content ?? '',
+          content: mostRecentDocument.content ?? ''
         }));
       }
     }
@@ -160,51 +154,57 @@ function PureBlock({
 
   const handleContentChange = useCallback(
     (updatedContent: string) => {
-      if (!block) return;
+      if (!block) {
+        return;
+      }
 
       mutate<Array<Document>>(
         `/api/document?id=${block.documentId}`,
-        async (currentDocuments) => {
-          if (!currentDocuments) return undefined;
+        async currentDocuments => {
+          if (!currentDocuments) {
+            return undefined;
+          }
 
           const currentDocument = currentDocuments.at(-1);
 
           if (!currentDocument || !currentDocument.content) {
             setIsContentDirty(false);
+
             return currentDocuments;
           }
 
           if (currentDocument.content !== updatedContent) {
             await fetch(`/api/document?id=${block.documentId}`, {
               method: 'POST',
-              body: JSON.stringify({
-                title: block.title,
+              body  : JSON.stringify({
+                title  : block.title,
                 content: updatedContent,
-                kind: block.kind,
-              }),
+                kind   : block.kind
+              })
             });
 
             setIsContentDirty(false);
 
             const newDocument = {
               ...currentDocument,
-              content: updatedContent,
-              createdAt: new Date(),
+              content  : updatedContent,
+              createdAt: new Date()
             };
 
             return [...currentDocuments, newDocument];
           }
+
           return currentDocuments;
         },
-        { revalidate: false },
+        { revalidate: false }
       );
     },
-    [block, mutate],
+    [block, mutate]
   );
 
   const debouncedHandleContentChange = useDebounceCallback(
     handleContentChange,
-    2000,
+    2000
   );
 
   const saveContent = useCallback(
@@ -219,17 +219,25 @@ function PureBlock({
         }
       }
     },
-    [document, debouncedHandleContentChange, handleContentChange],
+    [document, debouncedHandleContentChange, handleContentChange]
   );
 
-  function getDocumentContentById(index: number) {
-    if (!documents) return '';
-    if (!documents[index]) return '';
+  function getDocumentContentById (index: number) {
+    if (!documents) {
+      return '';
+    }
+
+    if (!documents[index]) {
+      return '';
+    }
+
     return documents[index].content ?? '';
   }
 
   const handleVersionChange = (type: 'next' | 'prev' | 'toggle' | 'latest') => {
-    if (!documents) return;
+    if (!documents) {
+      return;
+    }
 
     if (type === 'latest') {
       setCurrentVersionIndex(documents.length - 1);
@@ -237,16 +245,16 @@ function PureBlock({
     }
 
     if (type === 'toggle') {
-      setMode((mode) => (mode === 'edit' ? 'diff' : 'edit'));
+      setMode(mode => (mode === 'edit' ? 'diff' : 'edit'));
     }
 
     if (type === 'prev') {
       if (currentVersionIndex > 0) {
-        setCurrentVersionIndex((index) => index - 1);
+        setCurrentVersionIndex(index => index - 1);
       }
     } else if (type === 'next') {
       if (currentVersionIndex < documents.length - 1) {
-        setCurrentVersionIndex((index) => index + 1);
+        setCurrentVersionIndex(index => index + 1);
       }
     }
   };
@@ -259,10 +267,7 @@ function PureBlock({
    * we mark it as the current version.
    */
 
-  const isCurrentVersion =
-    documents && documents.length > 0
-      ? currentVersionIndex === documents.length - 1
-      : true;
+  const isCurrentVersion = documents && documents.length > 0 ? currentVersionIndex === documents.length - 1 : true;
 
   const { width: windowWidth, height: windowHeight } = useWindowSize();
   const isMobile = windowWidth ? windowWidth < 768 : false;
@@ -271,52 +276,62 @@ function PureBlock({
     <AnimatePresence>
       {block.isVisible && (
         <motion.div
-          className="flex flex-row h-dvh w-dvw fixed top-0 left-0 z-50 bg-transparent"
+          className="fixed left-0 top-0 z-50 flex h-dvh w-dvw flex-row bg-transparent"
           initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { delay: 0.4 } }}
+          exit={{
+            opacity   : 0,
+            transition: { delay: 0.4 }
+          }}
         >
           {!isMobile && (
             <motion.div
-              className="fixed bg-background h-dvh"
+              className="fixed h-dvh bg-background"
               initial={{
                 width: isSidebarOpen ? windowWidth - 256 : windowWidth,
-                right: 0,
+                right: 0
               }}
-              animate={{ width: windowWidth, right: 0 }}
+              animate={{
+                width: windowWidth,
+                right: 0
+              }}
               exit={{
                 width: isSidebarOpen ? windowWidth - 256 : windowWidth,
-                right: 0,
+                right: 0
               }}
             />
           )}
 
           {!isMobile && (
             <motion.div
-              className="relative w-[400px] bg-muted dark:bg-background h-dvh shrink-0"
-              initial={{ opacity: 0, x: 10, scale: 1 }}
+              className="relative h-dvh w-[400px] shrink-0 bg-muted dark:bg-background"
+              initial={{
+                opacity: 0,
+                x      : 10,
+                scale  : 1
+              }}
               animate={{
-                opacity: 1,
-                x: 0,
-                scale: 1,
+                opacity   : 1,
+                x         : 0,
+                scale     : 1,
                 transition: {
-                  delay: 0.2,
-                  type: 'spring',
+                  delay    : 0.2,
+                  type     : 'spring',
                   stiffness: 200,
-                  damping: 30,
-                },
+                  damping  : 30
+                }
               }}
               exit={{
-                opacity: 0,
-                x: 0,
-                scale: 1,
-                transition: { duration: 0 },
+                opacity   : 0,
+                x         : 0,
+                scale     : 1,
+                transition: { duration: 0 }
               }}
             >
               <AnimatePresence>
                 {!isCurrentVersion && (
                   <motion.div
-                    className="left-0 absolute h-dvh w-[400px] top-0 bg-zinc-900/50 z-50"
+                    className="absolute left-0 top-0 z-50 h-dvh w-[400px] bg-zinc-900/50"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -324,7 +339,7 @@ function PureBlock({
                 )}
               </AnimatePresence>
 
-              <div className="flex flex-col h-full justify-between items-center gap-4">
+              <div className="flex h-full flex-col items-center justify-between gap-4">
                 <BlockMessages
                   chatId={chatId}
                   isLoading={isLoading}
@@ -336,7 +351,7 @@ function PureBlock({
                   blockStatus={block.status}
                 />
 
-                <form className="flex flex-row gap-2 relative items-end w-full px-4 pb-4">
+                <form className="relative flex w-full flex-row items-end gap-2 px-4 pb-4">
                   <MultimodalInput
                     chatId={chatId}
                     input={input}
@@ -357,74 +372,68 @@ function PureBlock({
           )}
 
           <motion.div
-            className="fixed dark:bg-muted bg-background h-dvh flex flex-col overflow-y-scroll border-l dark:border-zinc-700 border-zinc-200"
+            className="fixed flex h-dvh flex-col overflow-y-scroll border-l border-zinc-200 bg-background dark:border-zinc-700 dark:bg-muted"
             initial={
-              isMobile
-                ? {
-                    opacity: 1,
-                    x: block.boundingBox.left,
-                    y: block.boundingBox.top,
-                    height: block.boundingBox.height,
-                    width: block.boundingBox.width,
-                    borderRadius: 50,
-                  }
-                : {
-                    opacity: 1,
-                    x: block.boundingBox.left,
-                    y: block.boundingBox.top,
-                    height: block.boundingBox.height,
-                    width: block.boundingBox.width,
-                    borderRadius: 50,
-                  }
+              isMobile ? {
+                opacity     : 1,
+                x           : block.boundingBox.left,
+                y           : block.boundingBox.top,
+                height      : block.boundingBox.height,
+                width       : block.boundingBox.width,
+                borderRadius: 50
+              } : {
+                opacity     : 1,
+                x           : block.boundingBox.left,
+                y           : block.boundingBox.top,
+                height      : block.boundingBox.height,
+                width       : block.boundingBox.width,
+                borderRadius: 50
+              }
             }
             animate={
-              isMobile
-                ? {
-                    opacity: 1,
-                    x: 0,
-                    y: 0,
-                    height: windowHeight,
-                    width: windowWidth ? windowWidth : 'calc(100dvw)',
-                    borderRadius: 0,
-                    transition: {
-                      delay: 0,
-                      type: 'spring',
-                      stiffness: 200,
-                      damping: 30,
-                      duration: 5000,
-                    },
-                  }
-                : {
-                    opacity: 1,
-                    x: 400,
-                    y: 0,
-                    height: windowHeight,
-                    width: windowWidth
-                      ? windowWidth - 400
-                      : 'calc(100dvw-400px)',
-                    borderRadius: 0,
-                    transition: {
-                      delay: 0,
-                      type: 'spring',
-                      stiffness: 200,
-                      damping: 30,
-                      duration: 5000,
-                    },
-                  }
+              isMobile ? {
+                opacity     : 1,
+                x           : 0,
+                y           : 0,
+                height      : windowHeight,
+                width       : windowWidth ? windowWidth : 'calc(100dvw)',
+                borderRadius: 0,
+                transition  : {
+                  delay    : 0,
+                  type     : 'spring',
+                  stiffness: 200,
+                  damping  : 30,
+                  duration : 5000
+                }
+              } : {
+                opacity     : 1,
+                x           : 400,
+                y           : 0,
+                height      : windowHeight,
+                width       : windowWidth ? windowWidth - 400 : 'calc(100dvw-400px)',
+                borderRadius: 0,
+                transition  : {
+                  delay    : 0,
+                  type     : 'spring',
+                  stiffness: 200,
+                  damping  : 30,
+                  duration : 5000
+                }
+              }
             }
             exit={{
-              opacity: 0,
-              scale: 0.5,
+              opacity   : 0,
+              scale     : 0.5,
               transition: {
-                delay: 0.1,
-                type: 'spring',
+                delay    : 0.1,
+                type     : 'spring',
                 stiffness: 600,
-                damping: 30,
-              },
+                damping  : 30
+              }
             }}
           >
-            <div className="p-2 flex flex-row justify-between items-start">
-              <div className="flex flex-row gap-4 items-start">
+            <div className="flex flex-row items-start justify-between p-2">
+              <div className="flex flex-row items-start gap-4">
                 <BlockCloseButton />
 
                 <div className="flex flex-col">
@@ -439,13 +448,11 @@ function PureBlock({
                       {`Updated ${formatDistance(
                         new Date(document.createdAt),
                         new Date(),
-                        {
-                          addSuffix: true,
-                        },
+                        { addSuffix: true }
                       )}`}
                     </div>
                   ) : (
-                    <div className="w-32 h-3 mt-2 bg-muted-foreground/20 rounded-md animate-pulse" />
+                    <div className="mt-2 h-3 w-32 animate-pulse rounded-md bg-muted-foreground/20" />
                   )}
                 </div>
               </div>
@@ -464,15 +471,15 @@ function PureBlock({
               className={cn(
                 'dark:bg-muted bg-background h-full overflow-y-scroll !max-w-full pb-40 items-center',
                 {
-                  'py-2 px-2': block.kind === 'code',
-                  'py-8 md:p-20 px-4': block.kind === 'text',
-                },
+                  'py-2 px-2'        : block.kind === 'code',
+                  'py-8 md:p-20 px-4': block.kind === 'text'
+                }
               )}
             >
               <div
                 className={cn('flex flex-row', {
-                  '': block.kind === 'code',
-                  'mx-auto max-w-[600px]': block.kind === 'text',
+                  ''                     : block.kind === 'code',
+                  'mx-auto max-w-[600px]': block.kind === 'text'
                 })}
               >
                 {isDocumentsFetching && !block.content ? (
@@ -480,9 +487,7 @@ function PureBlock({
                 ) : block.kind === 'code' ? (
                   <CodeEditor
                     content={
-                      isCurrentVersion
-                        ? block.content
-                        : getDocumentContentById(currentVersionIndex)
+                      isCurrentVersion ? block.content : getDocumentContentById(currentVersionIndex)
                     }
                     isCurrentVersion={isCurrentVersion}
                     currentVersionIndex={currentVersionIndex}
@@ -490,32 +495,28 @@ function PureBlock({
                     status={block.status}
                     saveContent={saveContent}
                   />
-                ) : block.kind === 'text' ? (
-                  mode === 'edit' ? (
-                    <Editor
-                      content={
-                        isCurrentVersion
-                          ? block.content
-                          : getDocumentContentById(currentVersionIndex)
-                      }
-                      isCurrentVersion={isCurrentVersion}
-                      currentVersionIndex={currentVersionIndex}
-                      status={block.status}
-                      saveContent={saveContent}
-                      suggestions={isCurrentVersion ? (suggestions ?? []) : []}
-                    />
-                  ) : (
-                    <DiffView
-                      oldContent={getDocumentContentById(
-                        currentVersionIndex - 1,
-                      )}
-                      newContent={getDocumentContentById(currentVersionIndex)}
-                    />
-                  )
+                ) : block.kind === 'text' ? mode === 'edit' ? (
+                  <Editor
+                    content={
+                      isCurrentVersion ? block.content : getDocumentContentById(currentVersionIndex)
+                    }
+                    isCurrentVersion={isCurrentVersion}
+                    currentVersionIndex={currentVersionIndex}
+                    status={block.status}
+                    saveContent={saveContent}
+                    suggestions={isCurrentVersion ? suggestions ?? [] : []}
+                  />
+                ) : (
+                  <DiffView
+                    oldContent={getDocumentContentById(
+                      currentVersionIndex - 1
+                    )}
+                    newContent={getDocumentContentById(currentVersionIndex)}
+                  />
                 ) : null}
 
                 {suggestions ? (
-                  <div className="md:hidden h-dvh w-12 shrink-0" />
+                  <div className="h-dvh w-12 shrink-0 md:hidden" />
                 ) : null}
 
                 <AnimatePresence>
@@ -558,10 +559,21 @@ function PureBlock({
 }
 
 export const Block = memo(PureBlock, (prevProps, nextProps) => {
-  if (prevProps.isLoading !== nextProps.isLoading) return false;
-  if (!equal(prevProps.votes, nextProps.votes)) return false;
-  if (prevProps.input !== nextProps.input) return false;
-  if (!equal(prevProps.messages, nextProps.messages.length)) return false;
+  if (prevProps.isLoading !== nextProps.isLoading) {
+    return false;
+  }
+
+  if (!equal(prevProps.votes, nextProps.votes)) {
+    return false;
+  }
+
+  if (prevProps.input !== nextProps.input) {
+    return false;
+  }
+
+  if (!equal(prevProps.messages, nextProps.messages.length)) {
+    return false;
+  }
 
   return true;
 });

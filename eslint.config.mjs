@@ -6,6 +6,7 @@ import { FlatCompat } from '@eslint/eslintrc';
 import reactEslint from 'eslint-plugin-react';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import reactHooksEslint from 'eslint-plugin-react-hooks';
+import nextPlugin from '@next/eslint-plugin-next';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -17,6 +18,7 @@ const compat = new FlatCompat({
   allConfig        : js.configs.all
 });
 
+// eslint-disable-next-line import/no-anonymous-default-export
 export default [
   {
     ignores: [
@@ -41,10 +43,14 @@ export default [
     'plugin:@typescript-eslint/recommended',
     'plugin:react/recommended',
     'plugin:react-hooks/recommended',
+    'next/core-web-vitals',
+    'next/typescript',
+    'plugin:tailwindcss/recommended',
     'prettier'
   ),
   {
     plugins: {
+      '@next/next'        : nextPlugin,
       '@typescript-eslint': typescriptEslint,
       react               : reactEslint,
       'react-refresh'     : reactRefresh,
@@ -64,6 +70,8 @@ export default [
     },
     settings: { react: { version: 'detect' } },
     rules   : {
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
       'getter-return'            : 2,
       'no-async-promise-executor': 2,
       'no-await-in-loop'         : 2,
@@ -249,7 +257,7 @@ export default [
       }],
       'lines-between-class-members': ['error', 'always'],
       'max-depth'                  : ['error', 4],
-      'max-len'                    : ['error', 120],
+      'max-len'                    : ['warn', 120],
       'max-lines-per-function'     : 0,
       'max-nested-callbacks'       : ['warn', 7],
       'max-params'                 : ['error', 3],
@@ -264,7 +272,7 @@ export default [
       'new-parens'              : 2,
       'newline-per-chained-call': 2,
       'no-array-constructor'    : 2,
-      'no-bitwise'              : 2,
+      'no-bitwise'              : 1,
       'no-inline-comments'      : 0,
       'no-lonely-if'            : 2,
       'no-mixed-operators'      : 0,

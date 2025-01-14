@@ -15,16 +15,15 @@ export const buildDocumentFromContent = (content: string) => {
   const stringFromMarkdown = renderToString(<Markdown>{content}</Markdown>);
   const tempContainer = document.createElement('div');
   tempContainer.innerHTML = stringFromMarkdown;
+
   return parser.parse(tempContainer);
 };
 
-export const buildContentFromDocument = (document: Node) => {
-  return defaultMarkdownSerializer.serialize(document);
-};
+export const buildContentFromDocument = (document: Node) => defaultMarkdownSerializer.serialize(document);
 
 export const createDecorations = (
   suggestions: Array<UISuggestion>,
-  view: EditorView,
+  view: EditorView
 ) => {
   const decorations: Array<Decoration> = [];
 
@@ -33,28 +32,27 @@ export const createDecorations = (
       Decoration.inline(
         suggestion.selectionStart,
         suggestion.selectionEnd,
-        {
-          class: 'suggestion-highlight',
-        },
+        { class: 'suggestion-highlight' },
         {
           suggestionId: suggestion.id,
-          type: 'highlight',
-        },
-      ),
+          type        : 'highlight'
+        }
+      )
     );
 
     decorations.push(
       Decoration.widget(
         suggestion.selectionStart,
-        (view) => {
+        view => {
           const { dom } = createSuggestionWidget(suggestion, view);
+
           return dom;
         },
         {
           suggestionId: suggestion.id,
-          type: 'widget',
-        },
-      ),
+          type        : 'widget'
+        }
+      )
     );
   }
 

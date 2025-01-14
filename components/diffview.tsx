@@ -3,7 +3,7 @@ import {
   Schema,
   type Node as ProsemirrorNode,
   type MarkSpec,
-  DOMParser,
+  DOMParser
 } from 'prosemirror-model';
 import { schema } from 'prosemirror-schema-basic';
 import { addListNodes } from 'prosemirror-schema-list';
@@ -21,28 +21,28 @@ const diffSchema = new Schema({
     ...schema.spec.marks.toObject(),
     diffMark: {
       attrs: { type: { default: '' } },
-      toDOM(mark) {
+      toDOM (mark) {
         let className = '';
 
         switch (mark.attrs.type) {
           case DiffType.Inserted:
-            className =
-              'bg-green-100 text-green-700 dark:bg-green-500/70 dark:text-green-300';
+            className = 'bg-green-100 text-green-700 dark:bg-green-500/70 dark:text-green-300';
             break;
           case DiffType.Deleted:
-            className =
-              'bg-red-100 line-through text-red-600 dark:bg-red-500/70 dark:text-red-300';
+            className = 'bg-red-100 line-through text-red-600 dark:bg-red-500/70 dark:text-red-300';
             break;
+
           default:
             className = '';
         }
+
         return ['span', { class: className }, 0];
-      },
-    } as MarkSpec,
-  }),
+      }
+    } as MarkSpec
+  })
 });
 
-function computeDiff(oldDoc: ProsemirrorNode, newDoc: ProsemirrorNode) {
+function computeDiff (oldDoc: ProsemirrorNode, newDoc: ProsemirrorNode) {
   return diffEditor(diffSchema, oldDoc.toJSON(), newDoc.toJSON());
 }
 
@@ -60,10 +60,10 @@ export const DiffView = ({ oldContent, newContent }: DiffEditorProps) => {
       const parser = DOMParser.fromSchema(diffSchema);
 
       const oldHtmlContent = renderToString(
-        <ReactMarkdown>{oldContent}</ReactMarkdown>,
+        <ReactMarkdown>{oldContent}</ReactMarkdown>
       );
       const newHtmlContent = renderToString(
-        <ReactMarkdown>{newContent}</ReactMarkdown>,
+        <ReactMarkdown>{newContent}</ReactMarkdown>
       );
 
       const oldContainer = document.createElement('div');
@@ -78,13 +78,13 @@ export const DiffView = ({ oldContent, newContent }: DiffEditorProps) => {
       const diffedDoc = computeDiff(oldDoc, newDoc);
 
       const state = EditorState.create({
-        doc: diffedDoc,
-        plugins: [],
+        doc    : diffedDoc,
+        plugins: []
       });
 
       viewRef.current = new EditorView(editorRef.current, {
         state,
-        editable: () => false,
+        editable: () => false
       });
     }
 
@@ -96,5 +96,7 @@ export const DiffView = ({ oldContent, newContent }: DiffEditorProps) => {
     };
   }, [oldContent, newContent]);
 
-  return <div className="diff-editor" ref={editorRef} />;
+  return <div
+    className="diff-editor"
+    ref={editorRef} />;
 };

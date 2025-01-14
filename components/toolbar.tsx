@@ -6,7 +6,7 @@ import {
   AnimatePresence,
   motion,
   useMotionValue,
-  useTransform,
+  useTransform
 } from 'framer-motion';
 import {
   type Dispatch,
@@ -14,7 +14,7 @@ import {
   type SetStateAction,
   useEffect,
   useRef,
-  useState,
+  useState
 } from 'react';
 import { useOnClickOutside } from 'usehooks-ts';
 import { nanoid } from 'nanoid';
@@ -22,7 +22,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
+  TooltipTrigger
 } from '@/components/ui/tooltip';
 import { sanitizeUIMessages } from '@/lib/utils';
 
@@ -35,7 +35,7 @@ import {
   PenIcon,
   StopIcon,
   SummarizeIcon,
-  TerminalIcon,
+  TerminalIcon
 } from './icons';
 import { BlockKind } from './block';
 
@@ -69,7 +69,7 @@ const Tool = ({
   isToolbarVisible,
   setIsToolbarVisible,
   isAnimating,
-  append,
+  append
 }: ToolProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -82,49 +82,49 @@ const Tool = ({
   const handleSelect = () => {
     if (!isToolbarVisible && setIsToolbarVisible) {
       setIsToolbarVisible(true);
+
       return;
     }
 
     if (!selectedTool) {
       setIsHovered(true);
       setSelectedTool(type);
+
       return;
     }
 
     if (selectedTool !== type) {
       setSelectedTool(type);
-    } else {
-      if (type === 'final-polish') {
-        append({
-          role: 'user',
-          content:
-            'Please add final polish and check for grammar, add section titles for better structure, and ensure everything reads smoothly.',
-        });
+    } else if (type === 'final-polish') {
+      append({
+        role: 'user',
+        content:
+            'Please add final polish and check for grammar, add section titles for better structure, and ensure everything reads smoothly.'
+      });
 
-        setSelectedTool(null);
-      } else if (type === 'request-suggestions') {
-        append({
-          role: 'user',
-          content:
-            'Please add suggestions you have that could improve the writing.',
-        });
+      setSelectedTool(null);
+    } else if (type === 'request-suggestions') {
+      append({
+        role: 'user',
+        content:
+            'Please add suggestions you have that could improve the writing.'
+      });
 
-        setSelectedTool(null);
-      } else if (type === 'add-comments') {
-        append({
-          role: 'user',
-          content: 'Please add comments to explain the code.',
-        });
+      setSelectedTool(null);
+    } else if (type === 'add-comments') {
+      append({
+        role   : 'user',
+        content: 'Please add comments to explain the code.'
+      });
 
-        setSelectedTool(null);
-      } else if (type === 'add-logs') {
-        append({
-          role: 'user',
-          content: 'Please add logs to help debug the code.',
-        });
+      setSelectedTool(null);
+    } else if (type === 'add-logs') {
+      append({
+        role   : 'user',
+        content: 'Please add logs to help debug the code.'
+      });
 
-        setSelectedTool(null);
-      }
+      setSelectedTool(null);
     }
   };
 
@@ -132,28 +132,34 @@ const Tool = ({
     <Tooltip open={isHovered && !isAnimating}>
       <TooltipTrigger asChild>
         <motion.div
-          className={cx('p-3 rounded-full', {
-            'bg-primary !text-primary-foreground': selectedTool === type,
-          })}
+          className={cx('p-3 rounded-full', { 'bg-primary !text-primary-foreground': selectedTool === type })}
           onHoverStart={() => {
             setIsHovered(true);
           }}
           onHoverEnd={() => {
-            if (selectedTool !== type) setIsHovered(false);
+            if (selectedTool !== type) {
+              setIsHovered(false);
+            }
           }}
-          onKeyDown={(event) => {
+          onKeyDown={event => {
             if (event.key === 'Enter') {
               handleSelect();
             }
           }}
-          initial={{ scale: 1, opacity: 0 }}
-          animate={{ opacity: 1, transition: { delay: 0.1 } }}
+          initial={{
+            scale  : 1,
+            opacity: 0
+          }}
+          animate={{
+            opacity   : 1,
+            transition: { delay: 0.1 }
+          }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           exit={{
-            scale: 0.9,
-            opacity: 0,
-            transition: { duration: 0.1 },
+            scale     : 0.9,
+            opacity   : 0,
+            transition: { duration: 0.1 }
           }}
           onClick={() => {
             handleSelect();
@@ -165,7 +171,7 @@ const Tool = ({
       <TooltipContent
         side="left"
         sideOffset={16}
-        className="bg-foreground text-background rounded-2xl p-3 px-4"
+        className="rounded-2xl bg-foreground p-3 px-4 text-background"
       >
         {description}
       </TooltipContent>
@@ -173,12 +179,12 @@ const Tool = ({
   );
 };
 
-const randomArr = [...Array(6)].map((x) => nanoid(5));
+const randomArr = [...Array(6)].map(x => nanoid(5));
 
 const ReadingLevelSelector = ({
   setSelectedTool,
   append,
-  isAnimating,
+  isAnimating
 }: {
   setSelectedTool: Dispatch<SetStateAction<string | null>>;
   isAnimating: boolean;
@@ -193,7 +199,7 @@ const ReadingLevelSelector = ({
     'Keep current level',
     'High School',
     'College',
-    'Graduate',
+    'Graduate'
   ];
 
   const y = useMotionValue(-40 * 2);
@@ -201,11 +207,10 @@ const ReadingLevelSelector = ({
   const yToLevel = useTransform(y, [0, -dragConstraints], [0, 5]);
 
   const [currentLevel, setCurrentLevel] = useState(2);
-  const [hasUserSelectedLevel, setHasUserSelectedLevel] =
-    useState<boolean>(false);
+  const [hasUserSelectedLevel, setHasUserSelectedLevel] = useState<boolean>(false);
 
   useEffect(() => {
-    const unsubscribe = yToLevel.on('change', (latest) => {
+    const unsubscribe = yToLevel.on('change', latest => {
       const level = Math.min(5, Math.max(0, Math.round(Math.abs(latest))));
       setCurrentLevel(level);
     });
@@ -214,11 +219,11 @@ const ReadingLevelSelector = ({
   }, [yToLevel]);
 
   return (
-    <div className="relative flex flex-col justify-end items-center">
-      {randomArr.map((id) => (
+    <div className="relative flex flex-col items-center justify-end">
+      {randomArr.map(id => (
         <motion.div
           key={id}
-          className="size-[40px] flex flex-row items-center justify-center"
+          className="flex size-[40px] flex-row items-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -236,8 +241,8 @@ const ReadingLevelSelector = ({
                 'absolute bg-background p-3 border rounded-full flex flex-row items-center',
                 {
                   'bg-primary text-primary-foreground': currentLevel !== 2,
-                  'bg-background text-foreground': currentLevel === 2,
-                },
+                  'bg-background text-foreground'     : currentLevel === 2
+                }
               )}
               style={{ y }}
               drag="y"
@@ -246,7 +251,10 @@ const ReadingLevelSelector = ({
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.1 }}
-              dragConstraints={{ top: -dragConstraints, bottom: 0 }}
+              dragConstraints={{
+                top   : -dragConstraints,
+                bottom: 0
+              }}
               onDragStart={() => {
                 setHasUserSelectedLevel(false);
               }}
@@ -260,8 +268,8 @@ const ReadingLevelSelector = ({
               onClick={() => {
                 if (currentLevel !== 2 && hasUserSelectedLevel) {
                   append({
-                    role: 'user',
-                    content: `Please adjust the reading level to ${LEVELS[currentLevel]} level.`,
+                    role   : 'user',
+                    content: `Please adjust the reading level to ${LEVELS[currentLevel]} level.`
                   });
 
                   setSelectedTool(null);
@@ -274,7 +282,7 @@ const ReadingLevelSelector = ({
           <TooltipContent
             side="left"
             sideOffset={16}
-            className="bg-foreground text-background text-sm rounded-2xl p-3 px-4"
+            className="rounded-2xl bg-foreground p-3 px-4 text-sm text-background"
           >
             {LEVELS[currentLevel]}
           </TooltipContent>
@@ -300,33 +308,33 @@ const toolsByBlockKind: Record<
 > = {
   text: [
     {
-      type: 'final-polish',
+      type       : 'final-polish',
       description: 'Add final polish',
-      icon: <PenIcon />,
+      icon       : <PenIcon />
     },
     {
-      type: 'adjust-reading-level',
+      type       : 'adjust-reading-level',
       description: 'Adjust reading level',
-      icon: <SummarizeIcon />,
+      icon       : <SummarizeIcon />
     },
     {
-      type: 'request-suggestions',
+      type       : 'request-suggestions',
       description: 'Request suggestions',
-      icon: <MessageIcon />,
-    },
+      icon       : <MessageIcon />
+    }
   ],
   code: [
     {
-      type: 'add-comments',
+      type       : 'add-comments',
       description: 'Add comments',
-      icon: <CodeIcon />,
+      icon       : <CodeIcon />
     },
     {
-      type: 'add-logs',
+      type       : 'add-logs',
       description: 'Add logs',
-      icon: <LogsIcon />,
-    },
-  ],
+      icon       : <LogsIcon />
+    }
+  ]
 };
 
 export const Tools = ({
@@ -336,7 +344,7 @@ export const Tools = ({
   append,
   isAnimating,
   setIsToolbarVisible,
-  blockKind,
+  blockKind
 }: {
   isToolbarVisible: boolean;
   selectedTool: string | null;
@@ -354,13 +362,22 @@ export const Tools = ({
   return (
     <motion.div
       className="flex flex-col gap-1.5"
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
+      initial={{
+        opacity: 0,
+        scale  : 0.95
+      }}
+      animate={{
+        opacity: 1,
+        scale  : 1
+      }}
+      exit={{
+        opacity: 0,
+        scale  : 0.95
+      }}
     >
       <AnimatePresence>
-        {isToolbarVisible &&
-          secondaryTools.map((secondaryTool) => (
+        {isToolbarVisible
+          && secondaryTools.map(secondaryTool => (
             <Tool
               key={secondaryTool.type}
               type={secondaryTool.type}
@@ -396,7 +413,7 @@ const PureToolbar = ({
   isLoading,
   stop,
   setMessages,
-  blockKind,
+  blockKind
 }: {
   isToolbarVisible: boolean;
   setIsToolbarVisible: Dispatch<SetStateAction<boolean>>;
@@ -437,12 +454,10 @@ const PureToolbar = ({
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
+  useEffect(() => () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
   }, []);
 
   useEffect(() => {
@@ -454,37 +469,54 @@ const PureToolbar = ({
   return (
     <TooltipProvider delayDuration={0}>
       <motion.div
-        className="cursor-pointer absolute right-6 bottom-6 p-1.5 border rounded-full shadow-lg bg-background flex flex-col justify-end"
-        initial={{ opacity: 0, y: -20, scale: 1 }}
+        className="absolute bottom-6 right-6 flex cursor-pointer flex-col justify-end rounded-full border bg-background p-1.5 shadow-lg"
+        initial={{
+          opacity: 0,
+          y      : -20,
+          scale  : 1
+        }}
         animate={
-          isToolbarVisible
-            ? selectedTool === 'adjust-reading-level'
-              ? {
-                  opacity: 1,
-                  y: 0,
-                  height: 6 * 43,
-                  transition: { delay: 0 },
-                  scale: 0.95,
-                }
-              : {
-                  opacity: 1,
-                  y: 0,
-                  height: toolsByBlockKind[blockKind].length * 50,
-                  transition: { delay: 0 },
-                  scale: 1,
-                }
-            : { opacity: 1, y: 0, height: 54, transition: { delay: 0 } }
+          isToolbarVisible ? selectedTool === 'adjust-reading-level' ? {
+            opacity   : 1,
+            y         : 0,
+            height    : 6 * 43,
+            transition: { delay: 0 },
+            scale     : 0.95
+          } : {
+            opacity   : 1,
+            y         : 0,
+            height    : toolsByBlockKind[blockKind].length * 50,
+            transition: { delay: 0 },
+            scale     : 1
+          } : {
+            opacity   : 1,
+            y         : 0,
+            height    : 54,
+            transition: { delay: 0 }
+          }
         }
-        exit={{ opacity: 0, y: -20, transition: { duration: 0.1 } }}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        exit={{
+          opacity   : 0,
+          y         : -20,
+          transition: { duration: 0.1 }
+        }}
+        transition={{
+          type     : 'spring',
+          stiffness: 300,
+          damping  : 25
+        }}
         onHoverStart={() => {
-          if (isLoading) return;
+          if (isLoading) {
+            return;
+          }
 
           cancelCloseTimer();
           setIsToolbarVisible(true);
         }}
         onHoverEnd={() => {
-          if (isLoading) return;
+          if (isLoading) {
+            return;
+          }
 
           startCloseTimer();
         }}
@@ -505,7 +537,7 @@ const PureToolbar = ({
             className="p-3"
             onClick={() => {
               stop();
-              setMessages((messages) => sanitizeUIMessages(messages));
+              setMessages(messages => sanitizeUIMessages(messages));
             }}
           >
             <StopIcon />
@@ -535,9 +567,17 @@ const PureToolbar = ({
 };
 
 export const Toolbar = memo(PureToolbar, (prevProps, nextProps) => {
-  if (prevProps.isLoading !== nextProps.isLoading) return false;
-  if (prevProps.isToolbarVisible !== nextProps.isToolbarVisible) return false;
-  if (prevProps.blockKind !== nextProps.blockKind) return false;
+  if (prevProps.isLoading !== nextProps.isLoading) {
+    return false;
+  }
+
+  if (prevProps.isToolbarVisible !== nextProps.isToolbarVisible) {
+    return false;
+  }
+
+  if (prevProps.blockKind !== nextProps.blockKind) {
+    return false;
+  }
 
   return true;
 });

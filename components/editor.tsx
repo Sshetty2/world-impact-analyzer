@@ -10,17 +10,17 @@ import type { Suggestion } from '@/lib/db/schema';
 import {
   documentSchema,
   handleTransaction,
-  headingRule,
+  headingRule
 } from '@/lib/editor/config';
 import {
   buildContentFromDocument,
   buildDocumentFromContent,
-  createDecorations,
+  createDecorations
 } from '@/lib/editor/functions';
 import {
   projectWithPositions,
   suggestionsPlugin,
-  suggestionsPluginKey,
+  suggestionsPluginKey
 } from '@/lib/editor/suggestions';
 
 type EditorProps = {
@@ -32,11 +32,11 @@ type EditorProps = {
   suggestions: Array<Suggestion>;
 };
 
-function PureEditor({
+function PureEditor ({
   content,
   saveContent,
   suggestions,
-  status,
+  status
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EditorView | null>(null);
@@ -44,9 +44,12 @@ function PureEditor({
   useEffect(() => {
     if (containerRef.current && !editorRef.current) {
       const state = EditorState.create({
-        doc: buildDocumentFromContent(content),
+        doc    : buildDocumentFromContent(content),
         plugins: [
-          ...exampleSetup({ schema: documentSchema, menuBar: false }),
+          ...exampleSetup({
+            schema : documentSchema,
+            menuBar: false
+          }),
           inputRules({
             rules: [
               headingRule(1),
@@ -54,16 +57,14 @@ function PureEditor({
               headingRule(3),
               headingRule(4),
               headingRule(5),
-              headingRule(6),
-            ],
+              headingRule(6)
+            ]
           }),
-          suggestionsPlugin,
-        ],
+          suggestionsPlugin
+        ]
       });
 
-      editorRef.current = new EditorView(containerRef.current, {
-        state,
-      });
+      editorRef.current = new EditorView(containerRef.current, { state });
     }
 
     return () => {
@@ -72,6 +73,7 @@ function PureEditor({
         editorRef.current = null;
       }
     };
+
     // NOTE: we only want to run this effect once
     // eslint-disable-next-line
   }, []);
@@ -79,9 +81,13 @@ function PureEditor({
   useEffect(() => {
     if (editorRef.current) {
       editorRef.current.setProps({
-        dispatchTransaction: (transaction) => {
-          handleTransaction({ transaction, editorRef, saveContent });
-        },
+        dispatchTransaction: transaction => {
+          handleTransaction({
+            transaction,
+            editorRef,
+            saveContent
+          });
+        }
       });
     }
   }, [saveContent]);
@@ -89,7 +95,7 @@ function PureEditor({
   useEffect(() => {
     if (editorRef.current && content) {
       const currentContent = buildContentFromDocument(
-        editorRef.current.state.doc,
+        editorRef.current.state.doc
       );
 
       if (status === 'streaming') {
@@ -98,11 +104,12 @@ function PureEditor({
         const transaction = editorRef.current.state.tr.replaceWith(
           0,
           editorRef.current.state.doc.content.size,
-          newDocument.content,
+          newDocument.content
         );
 
         transaction.setMeta('no-save', true);
         editorRef.current.dispatch(transaction);
+
         return;
       }
 
@@ -112,7 +119,7 @@ function PureEditor({
         const transaction = editorRef.current.state.tr.replaceWith(
           0,
           editorRef.current.state.doc.content.size,
-          newDocument.content,
+          newDocument.content
         );
 
         transaction.setMeta('no-save', true);
@@ -125,14 +132,14 @@ function PureEditor({
     if (editorRef.current?.state.doc && content) {
       const projectedSuggestions = projectWithPositions(
         editorRef.current.state.doc,
-        suggestions,
+        suggestions
       ).filter(
-        (suggestion) => suggestion.selectionStart && suggestion.selectionEnd,
+        suggestion => suggestion.selectionStart && suggestion.selectionEnd
       );
 
       const decorations = createDecorations(
         projectedSuggestions,
-        editorRef.current,
+        editorRef.current
       );
 
       const transaction = editorRef.current.state.tr;
@@ -142,18 +149,20 @@ function PureEditor({
   }, [suggestions, content]);
 
   return (
-    <div className="relative prose dark:prose-invert" ref={containerRef} />
+    <div
+      className="prose relative dark:prose-invert"
+      ref={containerRef} />
   );
 }
 
-function areEqual(prevProps: EditorProps, nextProps: EditorProps) {
+function areEqual (prevProps: EditorProps, nextProps: EditorProps) {
   return (
-    prevProps.suggestions === nextProps.suggestions &&
-    prevProps.currentVersionIndex === nextProps.currentVersionIndex &&
-    prevProps.isCurrentVersion === nextProps.isCurrentVersion &&
-    !(prevProps.status === 'streaming' && nextProps.status === 'streaming') &&
-    prevProps.content === nextProps.content &&
-    prevProps.saveContent === nextProps.saveContent
+    prevProps.suggestions === nextProps.suggestions
+    && prevProps.currentVersionIndex === nextProps.currentVersionIndex
+    && prevProps.isCurrentVersion === nextProps.isCurrentVersion
+    && !(prevProps.status === 'streaming' && nextProps.status === 'streaming')
+    && prevProps.content === nextProps.content
+    && prevProps.saveContent === nextProps.saveContent
   );
 }
 

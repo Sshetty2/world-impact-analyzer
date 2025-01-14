@@ -15,12 +15,12 @@ import { Messages } from './messages';
 import { VisibilityType } from './visibility-selector';
 import { useBlockSelector } from '@/hooks/use-block';
 
-export function Chat({
+export function Chat ({
   id,
   initialMessages,
   selectedModelId,
   selectedVisibilityType,
-  isReadonly,
+  isReadonly
 }: {
   id: string;
   initialMessages: Array<Message>;
@@ -39,28 +39,31 @@ export function Chat({
     append,
     isLoading,
     stop,
-    reload,
+    reload
   } = useChat({
     id,
-    body: { id, modelId: selectedModelId },
+    body: {
+      id,
+      modelId: selectedModelId
+    },
     initialMessages,
     experimental_throttle: 100,
-    onFinish: () => {
+    onFinish             : () => {
       mutate('/api/history');
-    },
+    }
   });
 
   const { data: votes } = useSWR<Array<Vote>>(
     `/api/vote?chatId=${id}`,
-    fetcher,
+    fetcher
   );
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-  const isBlockVisible = useBlockSelector((state) => state.isVisible);
+  const isBlockVisible = useBlockSelector(state => state.isVisible);
 
   return (
     <>
-      <div className="flex flex-col min-w-0 h-dvh bg-background">
+      <div className="flex h-dvh min-w-0 flex-col bg-background">
         <ChatHeader
           chatId={id}
           selectedModelId={selectedModelId}
@@ -79,7 +82,7 @@ export function Chat({
           isBlockVisible={isBlockVisible}
         />
 
-        <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
+        <form className="mx-auto flex w-full gap-2 bg-background px-4 pb-4 md:max-w-3xl md:pb-6">
           {!isReadonly && (
             <MultimodalInput
               chatId={id}

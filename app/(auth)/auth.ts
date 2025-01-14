@@ -14,33 +14,41 @@ export const {
   handlers: { GET, POST },
   auth,
   signIn,
-  signOut,
+  signOut
 } = NextAuth({
   ...authConfig,
   providers: [
     Credentials({
       credentials: {},
-      async authorize({ email, password }: any) {
+      async authorize ({ email, password }: any) {
         const users = await getUser(email);
-        if (users.length === 0) return null;
+
+        if (users.length === 0) {
+          return null;
+        }
+
         // biome-ignore lint: Forbidden non-null assertion.
         const passwordsMatch = await compare(password, users[0].password!);
-        if (!passwordsMatch) return null;
+
+        if (!passwordsMatch) {
+          return null;
+        }
+
         return users[0] as any;
-      },
-    }),
+      }
+    })
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt ({ token, user }) {
       if (user) {
         token.id = user.id;
       }
 
       return token;
     },
-    async session({
+    async session ({
       session,
-      token,
+      token
     }: {
       session: ExtendedSession;
       token: any;
@@ -50,6 +58,6 @@ export const {
       }
 
       return session;
-    },
-  },
+    }
+  }
 });

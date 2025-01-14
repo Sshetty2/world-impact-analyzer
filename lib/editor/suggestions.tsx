@@ -3,7 +3,7 @@ import { Plugin, PluginKey } from 'prosemirror-state';
 import {
   type Decoration,
   DecorationSet,
-  type EditorView,
+  type EditorView
 } from 'prosemirror-view';
 import { createRoot } from 'react-dom/client';
 
@@ -21,7 +21,7 @@ interface Position {
   end: number;
 }
 
-function findPositionsInDoc(doc: Node, searchText: string): Position | null {
+function findPositionsInDoc (doc: Node, searchText: string): Position | null {
   let positions: { start: number; end: number } | null = null;
 
   doc.nodesBetween(0, doc.content.size, (node, pos) => {
@@ -31,7 +31,7 @@ function findPositionsInDoc(doc: Node, searchText: string): Position | null {
       if (index !== -1) {
         positions = {
           start: pos + index,
-          end: pos + index + searchText.length,
+          end  : pos + index + searchText.length
         };
 
         return false;
@@ -44,38 +44,38 @@ function findPositionsInDoc(doc: Node, searchText: string): Position | null {
   return positions;
 }
 
-export function projectWithPositions(
+export function projectWithPositions (
   doc: Node,
-  suggestions: Array<Suggestion>,
+  suggestions: Array<Suggestion>
 ): Array<UISuggestion> {
-  return suggestions.map((suggestion) => {
+  return suggestions.map(suggestion => {
     const positions = findPositionsInDoc(doc, suggestion.originalText);
 
     if (!positions) {
       return {
         ...suggestion,
         selectionStart: 0,
-        selectionEnd: 0,
+        selectionEnd  : 0
       };
     }
 
     return {
       ...suggestion,
       selectionStart: positions.start,
-      selectionEnd: positions.end,
+      selectionEnd  : positions.end
     };
   });
 }
 
-export function createSuggestionWidget(
+export function createSuggestionWidget (
   suggestion: UISuggestion,
   view: EditorView,
-  blockKind: BlockKind = 'text',
+  blockKind: BlockKind = 'text'
 ): { dom: HTMLElement; destroy: () => void } {
   const dom = document.createElement('span');
   const root = createRoot(dom);
 
-  dom.addEventListener('mousedown', (event) => {
+  dom.addEventListener('mousedown', event => {
     event.preventDefault();
     view.dom.blur();
   });
@@ -90,14 +90,12 @@ export function createSuggestionWidget(
     if (currentDecorations) {
       const newDecorations = DecorationSet.create(
         state.doc,
-        currentDecorations.find().filter((decoration: Decoration) => {
-          return decoration.spec.suggestionId !== suggestion.id;
-        }),
+        currentDecorations.find().filter((decoration: Decoration) => decoration.spec.suggestionId !== suggestion.id)
       );
 
       decorationTransaction.setMeta(suggestionsPluginKey, {
         decorations: newDecorations,
-        selected: null,
+        selected   : null
       });
       dispatch(decorationTransaction);
     }
@@ -105,7 +103,7 @@ export function createSuggestionWidget(
     const textTransaction = view.state.tr.replaceWith(
       suggestion.selectionStart,
       suggestion.selectionEnd,
-      state.schema.text(suggestion.suggestedText),
+      state.schema.text(suggestion.suggestedText)
     );
 
     textTransaction.setMeta('no-debounce', true);
@@ -118,7 +116,7 @@ export function createSuggestionWidget(
       suggestion={suggestion}
       onApply={onApply}
       blockKind={blockKind}
-    />,
+    />
   );
 
   return {
@@ -128,30 +126,37 @@ export function createSuggestionWidget(
       setTimeout(() => {
         root.unmount();
       }, 0);
-    },
+    }
   };
 }
 
 export const suggestionsPluginKey = new PluginKey('suggestions');
+
 export const suggestionsPlugin = new Plugin({
-  key: suggestionsPluginKey,
+  key  : suggestionsPluginKey,
   state: {
-    init() {
-      return { decorations: DecorationSet.empty, selected: null };
+    init () {
+      return {
+        decorations: DecorationSet.empty,
+        selected   : null
+      };
     },
-    apply(tr, state) {
+    apply (tr, state) {
       const newDecorations = tr.getMeta(suggestionsPluginKey);
-      if (newDecorations) return newDecorations;
+
+      if (newDecorations) {
+        return newDecorations;
+      }
 
       return {
         decorations: state.decorations.map(tr.mapping, tr.doc),
-        selected: state.selected,
+        selected   : state.selected
       };
-    },
+    }
   },
   props: {
-    decorations(state) {
+    decorations (state) {
       return this.getState(state)?.decorations ?? DecorationSet.empty;
-    },
-  },
+    }
+  }
 });

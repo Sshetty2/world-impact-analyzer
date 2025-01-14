@@ -23,7 +23,7 @@ interface VersionFooterProps {
 export const VersionFooter = ({
   handleVersionChange,
   documents,
-  currentVersionIndex,
+  currentVersionIndex
 }: VersionFooterProps) => {
   const { block } = useBlock();
 
@@ -33,19 +33,25 @@ export const VersionFooter = ({
   const { mutate } = useSWRConfig();
   const [isMutating, setIsMutating] = useState(false);
 
-  if (!documents) return;
+  if (!documents) {
+    return;
+  }
 
   return (
     <motion.div
-      className="absolute flex flex-col gap-4 lg:flex-row bottom-0 bg-background p-4 w-full border-t z-50 justify-between"
+      className="absolute bottom-0 z-50 flex w-full flex-col justify-between gap-4 border-t bg-background p-4 lg:flex-row"
       initial={{ y: isMobile ? 200 : 77 }}
       animate={{ y: 0 }}
       exit={{ y: isMobile ? 200 : 77 }}
-      transition={{ type: 'spring', stiffness: 140, damping: 20 }}
+      transition={{
+        type     : 'spring',
+        stiffness: 140,
+        damping  : 20
+      }}
     >
       <div>
         <div>You are viewing a previous version</div>
-        <div className="text-muted-foreground text-sm">
+        <div className="text-sm text-muted-foreground">
           Restore this version to make edits
         </div>
       </div>
@@ -60,30 +66,26 @@ export const VersionFooter = ({
               `/api/document?id=${block.documentId}`,
               await fetch(`/api/document?id=${block.documentId}`, {
                 method: 'PATCH',
-                body: JSON.stringify({
+                body  : JSON.stringify({
                   timestamp: getDocumentTimestampByIndex(
                     documents,
-                    currentVersionIndex,
-                  ),
-                }),
+                    currentVersionIndex
+                  )
+                })
               }),
               {
-                optimisticData: documents
-                  ? [
-                      ...documents.filter((document) =>
-                        isAfter(
-                          new Date(document.createdAt),
-                          new Date(
-                            getDocumentTimestampByIndex(
-                              documents,
-                              currentVersionIndex,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ]
-                  : [],
-              },
+                optimisticData: documents ? [
+                  ...documents.filter(document => isAfter(
+                    new Date(document.createdAt),
+                    new Date(
+                      getDocumentTimestampByIndex(
+                        documents,
+                        currentVersionIndex
+                      )
+                    )
+                  ))
+                ] : []
+              }
             );
           }}
         >

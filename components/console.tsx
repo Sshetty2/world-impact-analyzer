@@ -6,7 +6,7 @@ import {
   useCallback,
   useEffect,
   useRef,
-  useState,
+  useState
 } from 'react';
 import { ConsoleOutput } from './block';
 import { cn } from '@/lib/utils';
@@ -17,12 +17,12 @@ interface ConsoleProps {
   setConsoleOutputs: Dispatch<SetStateAction<Array<ConsoleOutput>>>;
 }
 
-export function Console({ consoleOutputs, setConsoleOutputs }: ConsoleProps) {
+export function Console ({ consoleOutputs, setConsoleOutputs }: ConsoleProps) {
   const [height, setHeight] = useState<number>(300);
   const [isResizing, setIsResizing] = useState(false);
   const consoleEndRef = useRef<HTMLDivElement>(null);
 
-  const isBlockVisible = useBlockSelector((state) => state.isVisible);
+  const isBlockVisible = useBlockSelector(state => state.isVisible);
 
   const minHeight = 100;
   const maxHeight = 800;
@@ -39,17 +39,19 @@ export function Console({ consoleOutputs, setConsoleOutputs }: ConsoleProps) {
     (e: MouseEvent) => {
       if (isResizing) {
         const newHeight = window.innerHeight - e.clientY;
+
         if (newHeight >= minHeight && newHeight <= maxHeight) {
           setHeight(newHeight);
         }
       }
     },
-    [isResizing],
+    [isResizing]
   );
 
   useEffect(() => {
     window.addEventListener('mousemove', resize);
     window.addEventListener('mouseup', stopResizing);
+
     return () => {
       window.removeEventListener('mousemove', resize);
       window.removeEventListener('mouseup', stopResizing);
@@ -69,7 +71,7 @@ export function Console({ consoleOutputs, setConsoleOutputs }: ConsoleProps) {
   return consoleOutputs.length > 0 ? (
     <>
       <div
-        className="h-2 w-full fixed cursor-ns-resize z-50"
+        className="fixed z-50 h-2 w-full cursor-ns-resize"
         onMouseDown={startResizing}
         style={{ bottom: height - 4 }}
         role="slider"
@@ -79,14 +81,12 @@ export function Console({ consoleOutputs, setConsoleOutputs }: ConsoleProps) {
       <div
         className={cn(
           'fixed flex flex-col bottom-0 dark:bg-zinc-900 bg-zinc-50 w-full border-t z-40 overflow-y-scroll overflow-x-hidden dark:border-zinc-700 border-zinc-200',
-          {
-            'select-none': isResizing,
-          },
+          { 'select-none': isResizing }
         )}
         style={{ height }}
       >
-        <div className="flex flex-row justify-between items-center w-full h-fit border-b dark:border-zinc-700 border-zinc-200 px-2 py-1 sticky top-0 z-50 bg-muted">
-          <div className="text-sm pl-2 dark:text-zinc-50 text-zinc-800 flex flex-row gap-3 items-center">
+        <div className="sticky top-0 z-50 flex h-fit w-full flex-row items-center justify-between border-b border-zinc-200 bg-muted px-2 py-1 dark:border-zinc-700">
+          <div className="flex flex-row items-center gap-3 pl-2 text-sm text-zinc-800 dark:text-zinc-50">
             <div className="text-muted-foreground">
               <TerminalWindowIcon />
             </div>
@@ -94,7 +94,7 @@ export function Console({ consoleOutputs, setConsoleOutputs }: ConsoleProps) {
           </div>
           <Button
             variant="ghost"
-            className="size-fit p-1 hover:dark:bg-zinc-700 hover:bg-zinc-200"
+            className="size-fit p-1 hover:bg-zinc-200 hover:dark:bg-zinc-700"
             size="icon"
             onClick={() => setConsoleOutputs([])}
           >
@@ -106,59 +106,51 @@ export function Console({ consoleOutputs, setConsoleOutputs }: ConsoleProps) {
           {consoleOutputs.map((consoleOutput, index) => (
             <div
               key={consoleOutput.id}
-              className="px-4 py-2 flex flex-row text-sm border-b dark:border-zinc-700 border-zinc-200 dark:bg-zinc-900 bg-zinc-50 font-mono"
+              className="flex flex-row border-b border-zinc-200 bg-zinc-50 px-4 py-2 font-mono text-sm dark:border-zinc-700 dark:bg-zinc-900"
             >
               <div
                 className={cn('w-12 shrink-0', {
                   'text-muted-foreground': [
                     'in_progress',
-                    'loading_packages',
+                    'loading_packages'
                   ].includes(consoleOutput.status),
                   'text-emerald-500': consoleOutput.status === 'completed',
-                  'text-red-400': consoleOutput.status === 'failed',
+                  'text-red-400'    : consoleOutput.status === 'failed'
                 })}
               >
                 [{index + 1}]
               </div>
               {['in_progress', 'loading_packages'].includes(
-                consoleOutput.status,
+                consoleOutput.status
               ) ? (
-                <div className="flex flex-row gap-2">
-                  <div className="animate-spin size-fit self-center mb-auto mt-0.5">
-                    <LoaderIcon />
+                  <div className="flex flex-row gap-2">
+                    <div className="mb-auto mt-0.5 size-fit animate-spin self-center">
+                      <LoaderIcon />
+                    </div>
+                    <div className="text-muted-foreground">
+                      {consoleOutput.status === 'in_progress' ? 'Initializing...' : consoleOutput.status === 'loading_packages' ? consoleOutput.contents.map(content => (content.type === 'text' ? content.value : null)) : null}
+                    </div>
                   </div>
-                  <div className="text-muted-foreground">
-                    {consoleOutput.status === 'in_progress'
-                      ? 'Initializing...'
-                      : consoleOutput.status === 'loading_packages'
-                        ? consoleOutput.contents.map((content) =>
-                            content.type === 'text' ? content.value : null,
-                          )
-                        : null}
-                  </div>
-                </div>
-              ) : (
-                <div className="dark:text-zinc-50 text-zinc-900 w-full flex flex-col gap-2 overflow-x-scroll">
-                  {consoleOutput.contents.map((content, index) =>
-                    content.type === 'image' ? (
+                ) : (
+                  <div className="flex w-full flex-col gap-2 overflow-x-scroll text-zinc-900 dark:text-zinc-50">
+                    {consoleOutput.contents.map((content, index) => (content.type === 'image' ? (
                       <picture key={`${consoleOutput.id}-${index}`}>
                         <img
                           src={content.value}
                           alt="output"
-                          className="rounded-md max-w-[600px] w-full"
+                          className="w-full max-w-[600px] rounded-md"
                         />
                       </picture>
                     ) : (
                       <div
                         key={`${consoleOutput.id}-${index}`}
-                        className="whitespace-pre-line break-words w-full"
+                        className="w-full whitespace-pre-line break-words"
                       >
                         {content.value}
                       </div>
-                    ),
-                  )}
-                </div>
-              )}
+                    )))}
+                  </div>
+                )}
             </div>
           ))}
           <div ref={consoleEndRef} />

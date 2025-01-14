@@ -6,7 +6,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
+  useRef
 } from 'react';
 import { UIBlock } from './block';
 import { FileIcon, FullscreenIcon, LoaderIcon } from './icons';
@@ -26,10 +26,10 @@ interface DocumentPreviewProps {
   args?: any;
 }
 
-export function DocumentPreview({
+export function DocumentPreview ({
   isReadonly,
   result,
-  args,
+  args
 }: DocumentPreviewProps) {
   const { block, setBlock } = useBlock();
 
@@ -42,15 +42,16 @@ export function DocumentPreview({
 
   useEffect(() => {
     const boundingBox = hitboxRef.current?.getBoundingClientRect();
+
     if (block.documentId && boundingBox) {
-      setBlock((block) => ({
+      setBlock(block => ({
         ...block,
         boundingBox: {
-          left: boundingBox.x,
-          top: boundingBox.y,
-          width: boundingBox.width,
-          height: boundingBox.height,
-        },
+          left  : boundingBox.x,
+          top   : boundingBox.y,
+          width : boundingBox.width,
+          height: boundingBox.height
+        }
       }));
     }
   }, [block.documentId, setBlock]);
@@ -60,7 +61,11 @@ export function DocumentPreview({
       return (
         <DocumentToolResult
           type="create"
-          result={{ id: result.id, title: result.title, kind: result.kind }}
+          result={{
+            id   : result.id,
+            title: result.title,
+            kind : result.kind
+          }}
           isReadonly={isReadonly}
         />
       );
@@ -81,24 +86,25 @@ export function DocumentPreview({
     return <LoadingSkeleton />;
   }
 
-  const document: Document | null = previewDocument
-    ? previewDocument
-    : block.status === 'streaming'
-      ? {
-          title: block.title,
-          kind: block.kind,
-          content: block.content,
-          id: block.documentId,
-          createdAt: new Date(),
-          userId: 'noop',
-        }
-      : null;
+  const document: Document | null = previewDocument ? previewDocument : block.status === 'streaming' ? {
+    title    : block.title,
+    kind     : block.kind,
+    content  : block.content,
+    id       : block.documentId,
+    createdAt: new Date(),
+    userId   : 'noop'
+  } : null;
 
-  if (!document) return <LoadingSkeleton />;
+  if (!document) {
+    return <LoadingSkeleton />;
+  }
 
   return (
     <div className="relative w-full cursor-pointer">
-      <HitboxLayer hitboxRef={hitboxRef} result={result} setBlock={setBlock} />
+      <HitboxLayer
+        hitboxRef={hitboxRef}
+        result={result}
+        setBlock={setBlock} />
       <DocumentHeader
         title={document.title}
         isStreaming={block.status === 'streaming'}
@@ -110,18 +116,18 @@ export function DocumentPreview({
 
 const LoadingSkeleton = () => (
   <div className="w-full">
-    <div className="p-4 border rounded-t-2xl flex flex-row gap-2 items-center justify-between dark:bg-muted h-[57px] dark:border-zinc-700 border-b-0">
+    <div className="flex h-[57px] flex-row items-center justify-between gap-2 rounded-t-2xl border border-b-0 p-4 dark:border-zinc-700 dark:bg-muted">
       <div className="flex flex-row items-center gap-3">
         <div className="text-muted-foreground">
-          <div className="animate-pulse rounded-md size-4 bg-muted-foreground/20" />
+          <div className="size-4 animate-pulse rounded-md bg-muted-foreground/20" />
         </div>
-        <div className="animate-pulse rounded-lg h-4 bg-muted-foreground/20 w-24" />
+        <div className="h-4 w-24 animate-pulse rounded-lg bg-muted-foreground/20" />
       </div>
       <div>
         <FullscreenIcon />
       </div>
     </div>
-    <div className="overflow-y-scroll border rounded-b-2xl p-8 pt-4 bg-muted border-t-0 dark:border-zinc-700">
+    <div className="overflow-y-scroll rounded-b-2xl border border-t-0 bg-muted p-8 pt-4 dark:border-zinc-700">
       <InlineDocumentSkeleton />
     </div>
   </div>
@@ -130,7 +136,7 @@ const LoadingSkeleton = () => (
 const PureHitboxLayer = ({
   hitboxRef,
   result,
-  setBlock,
+  setBlock
 }: {
   hitboxRef: React.RefObject<HTMLDivElement>;
   result: any;
@@ -140,37 +146,36 @@ const PureHitboxLayer = ({
     (event: MouseEvent<HTMLElement>) => {
       const boundingBox = event.currentTarget.getBoundingClientRect();
 
-      setBlock((block) =>
-        block.status === 'streaming'
-          ? { ...block, isVisible: true }
-          : {
-              ...block,
-              title: result.title,
-              documentId: result.id,
-              kind: result.kind,
-              isVisible: true,
-              boundingBox: {
-                left: boundingBox.x,
-                top: boundingBox.y,
-                width: boundingBox.width,
-                height: boundingBox.height,
-              },
-            },
-      );
+      setBlock(block => (block.status === 'streaming' ? {
+        ...block,
+        isVisible: true
+      } : {
+        ...block,
+        title      : result.title,
+        documentId : result.id,
+        kind       : result.kind,
+        isVisible  : true,
+        boundingBox: {
+          left  : boundingBox.x,
+          top   : boundingBox.y,
+          width : boundingBox.width,
+          height: boundingBox.height
+        }
+      }));
     },
-    [setBlock, result],
+    [setBlock, result]
   );
 
   return (
     <div
-      className="size-full absolute top-0 left-0 rounded-xl z-10"
+      className="absolute left-0 top-0 z-10 size-full rounded-xl"
       ref={hitboxRef}
       onClick={handleClick}
       role="presentation"
       aria-hidden="true"
     >
-      <div className="w-full p-4 flex justify-end items-center">
-        <div className="absolute right-[9px] top-[13px] p-2 hover:dark:bg-zinc-700 rounded-md hover:bg-zinc-100">
+      <div className="flex w-full items-center justify-end p-4">
+        <div className="absolute right-[9px] top-[13px] rounded-md p-2 hover:bg-zinc-100 hover:dark:bg-zinc-700">
           <FullscreenIcon />
         </div>
       </div>
@@ -179,19 +184,22 @@ const PureHitboxLayer = ({
 };
 
 const HitboxLayer = memo(PureHitboxLayer, (prevProps, nextProps) => {
-  if (!equal(prevProps.result, nextProps.result)) return false;
+  if (!equal(prevProps.result, nextProps.result)) {
+    return false;
+  }
+
   return true;
 });
 
 const PureDocumentHeader = ({
   title,
-  isStreaming,
+  isStreaming
 }: {
   title: string;
   isStreaming: boolean;
 }) => (
-  <div className="p-4 border rounded-t-2xl flex flex-row gap-2 items-start sm:items-center justify-between dark:bg-muted border-b-0 dark:border-zinc-700">
-    <div className="flex flex-row items-start sm:items-center gap-3">
+  <div className="flex flex-row items-start justify-between gap-2 rounded-t-2xl border border-b-0 p-4 dark:border-zinc-700 dark:bg-muted sm:items-center">
+    <div className="flex flex-row items-start gap-3 sm:items-center">
       <div className="text-muted-foreground">
         {isStreaming ? (
           <div className="animate-spin">
@@ -201,15 +209,20 @@ const PureDocumentHeader = ({
           <FileIcon />
         )}
       </div>
-      <div className="-translate-y-1 sm:translate-y-0 font-medium">{title}</div>
+      <div className="-translate-y-1 font-medium sm:translate-y-0">{title}</div>
     </div>
     <div className="w-8" />
   </div>
 );
 
 const DocumentHeader = memo(PureDocumentHeader, (prevProps, nextProps) => {
-  if (prevProps.title !== nextProps.title) return false;
-  if (prevProps.isStreaming !== nextProps.isStreaming) return false;
+  if (prevProps.title !== nextProps.title) {
+    return false;
+  }
+
+  if (prevProps.isStreaming !== nextProps.isStreaming) {
+    return false;
+  }
 
   return true;
 });
@@ -221,17 +234,17 @@ const DocumentContent = ({ document }: { document: Document }) => {
     'h-[257px] overflow-y-scroll border rounded-b-2xl dark:bg-muted border-t-0 dark:border-zinc-700',
     {
       'p-4 sm:px-14 sm:py-16': document.kind === 'text',
-      'p-0': document.kind === 'code',
-    },
+      'p-0'                  : document.kind === 'code'
+    }
   );
 
   const commonProps = {
-    content: document.content ?? '',
-    isCurrentVersion: true,
+    content            : document.content ?? '',
+    isCurrentVersion   : true,
     currentVersionIndex: 0,
-    status: block.status,
-    saveContent: () => {},
-    suggestions: [],
+    status             : block.status,
+    saveContent        : () => {},
+    suggestions        : []
   };
 
   return (
@@ -239,7 +252,7 @@ const DocumentContent = ({ document }: { document: Document }) => {
       {document.kind === 'text' ? (
         <Editor {...commonProps} />
       ) : document.kind === 'code' ? (
-        <div className="flex flex-1 relative w-full">
+        <div className="relative flex w-full flex-1">
           <div className="absolute inset-0">
             <CodeEditor {...commonProps} />
           </div>

@@ -1,7 +1,7 @@
 import { auth } from '@/app/(auth)/auth';
 import { getVotesByChatId, voteMessage } from '@/lib/db/queries';
 
-export async function GET(request: Request) {
+export async function GET (request: Request) {
   const { searchParams } = new URL(request.url);
   const chatId = searchParams.get('chatId');
 
@@ -20,13 +20,12 @@ export async function GET(request: Request) {
   return Response.json(votes, { status: 200 });
 }
 
-export async function PATCH(request: Request) {
+export async function PATCH (request: Request) {
   const {
     chatId,
     messageId,
-    type,
-  }: { chatId: string; messageId: string; type: 'up' | 'down' } =
-    await request.json();
+    type
+  }: { chatId: string; messageId: string; type: 'up' | 'down' } = await request.json();
 
   if (!chatId || !messageId || !type) {
     return new Response('messageId and type are required', { status: 400 });
@@ -41,7 +40,7 @@ export async function PATCH(request: Request) {
   await voteMessage({
     chatId,
     messageId,
-    type: type,
+    type
   });
 
   return new Response('Message voted', { status: 200 });

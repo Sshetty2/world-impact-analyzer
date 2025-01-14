@@ -8,16 +8,13 @@ import { auth } from '@/app/(auth)/auth';
 const FileSchema = z.object({
   file: z
     .instanceof(Blob)
-    .refine((file) => file.size <= 5 * 1024 * 1024, {
-      message: 'File size should be less than 5MB',
-    })
+    .refine(file => file.size <= 5 * 1024 * 1024, { message: 'File size should be less than 5MB' })
+
     // Update the file type based on the kind of files you want to accept
-    .refine((file) => ['image/jpeg', 'image/png'].includes(file.type), {
-      message: 'File type should be JPEG or PNG',
-    }),
+    .refine(file => ['image/jpeg', 'image/png'].includes(file.type), { message: 'File type should be JPEG or PNG' })
 });
 
-export async function POST(request: Request) {
+export async function POST (request: Request) {
   const session = await auth();
 
   if (!session) {
@@ -40,7 +37,7 @@ export async function POST(request: Request) {
 
     if (!validatedFile.success) {
       const errorMessage = validatedFile.error.errors
-        .map((error) => error.message)
+        .map(error => error.message)
         .join(', ');
 
       return NextResponse.json({ error: errorMessage }, { status: 400 });
@@ -51,9 +48,7 @@ export async function POST(request: Request) {
     const fileBuffer = await file.arrayBuffer();
 
     try {
-      const data = await put(`${filename}`, fileBuffer, {
-        access: 'public',
-      });
+      const data = await put(`${filename}`, fileBuffer, { access: 'public' });
 
       return NextResponse.json(data);
     } catch (error) {
@@ -62,7 +57,7 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to process request' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

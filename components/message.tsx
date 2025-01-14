@@ -27,7 +27,7 @@ const PurePreviewMessage = ({
   isLoading,
   setMessages,
   reload,
-  isReadonly,
+  isReadonly
 }: {
   chatId: string;
   message: Message;
@@ -46,32 +46,38 @@ const PurePreviewMessage = ({
   return (
     <AnimatePresence>
       <motion.div
-        className="w-full mx-auto max-w-3xl px-4 group/message"
-        initial={{ y: 5, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+        className="group/message mx-auto w-full max-w-3xl px-4"
+        initial={{
+          y      : 5,
+          opacity: 0
+        }}
+        animate={{
+          y      : 0,
+          opacity: 1
+        }}
         data-role={message.role}
       >
         <div
           className={cn(
             'flex gap-4 w-full group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl',
             {
-              'w-full': mode === 'edit',
-              'group-data-[role=user]/message:w-fit': mode !== 'edit',
-            },
+              'w-full'                              : mode === 'edit',
+              'group-data-[role=user]/message:w-fit': mode !== 'edit'
+            }
           )}
         >
           {message.role === 'assistant' && (
-            <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border bg-background">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
               <div className="translate-y-px">
                 <SparklesIcon size={14} />
               </div>
             </div>
           )}
 
-          <div className="flex flex-col gap-2 w-full">
+          <div className="flex w-full flex-col gap-2">
             {message.experimental_attachments && (
               <div className="flex flex-row justify-end gap-2">
-                {message.experimental_attachments.map((attachment) => (
+                {message.experimental_attachments.map(attachment => (
                   <PreviewAttachment
                     key={attachment.url}
                     attachment={attachment}
@@ -81,13 +87,13 @@ const PurePreviewMessage = ({
             )}
 
             {message.content && mode === 'view' && (
-              <div className="flex flex-row gap-2 items-start">
+              <div className="flex flex-row items-start gap-2">
                 {message.role === 'user' && !isReadonly && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
-                        className="px-2 h-fit rounded-full text-muted-foreground opacity-0 group-hover/message:opacity-100"
+                        className="h-fit rounded-full px-2 text-muted-foreground opacity-0 group-hover/message:opacity-100"
                         onClick={() => {
                           setMode('edit');
                         }}
@@ -102,7 +108,7 @@ const PurePreviewMessage = ({
                 <div
                   className={cn('flex flex-col gap-4', {
                     'bg-primary text-primary-foreground px-3 py-2 rounded-xl':
-                      message.role === 'user',
+                      message.role === 'user'
                   })}
                 >
                   <Markdown>{message.content as string}</Markdown>
@@ -111,7 +117,7 @@ const PurePreviewMessage = ({
             )}
 
             {message.content && mode === 'edit' && (
-              <div className="flex flex-row gap-2 items-start">
+              <div className="flex flex-row items-start gap-2">
                 <div className="size-8" />
 
                 <MessageEditor
@@ -126,7 +132,7 @@ const PurePreviewMessage = ({
 
             {message.toolInvocations && message.toolInvocations.length > 0 && (
               <div className="flex flex-col gap-4">
-                {message.toolInvocations.map((toolInvocation) => {
+                {message.toolInvocations.map(toolInvocation => {
                   const { toolName, toolCallId, state, args } = toolInvocation;
 
                   if (state === 'result') {
@@ -159,17 +165,18 @@ const PurePreviewMessage = ({
                       </div>
                     );
                   }
+
                   return (
                     <div
                       key={toolCallId}
-                      className={cx({
-                        skeleton: ['getWeather'].includes(toolName),
-                      })}
+                      className={cx({ skeleton: ['getWeather'].includes(toolName) })}
                     >
                       {toolName === 'getWeather' ? (
                         <Weather />
                       ) : toolName === 'createDocument' ? (
-                        <DocumentPreview isReadonly={isReadonly} args={args} />
+                        <DocumentPreview
+                          isReadonly={isReadonly}
+                          args={args} />
                       ) : toolName === 'updateDocument' ? (
                         <DocumentToolCall
                           type="update"
@@ -208,19 +215,29 @@ const PurePreviewMessage = ({
 export const PreviewMessage = memo(
   PurePreviewMessage,
   (prevProps, nextProps) => {
-    if (prevProps.isLoading !== nextProps.isLoading) return false;
-    if (prevProps.message.content !== nextProps.message.content) return false;
+    if (prevProps.isLoading !== nextProps.isLoading) {
+      return false;
+    }
+
+    if (prevProps.message.content !== nextProps.message.content) {
+      return false;
+    }
+
     if (
       !equal(
         prevProps.message.toolInvocations,
-        nextProps.message.toolInvocations,
+        nextProps.message.toolInvocations
       )
-    )
+    ) {
       return false;
-    if (!equal(prevProps.vote, nextProps.vote)) return false;
+    }
+
+    if (!equal(prevProps.vote, nextProps.vote)) {
+      return false;
+    }
 
     return true;
-  },
+  }
 );
 
 export const ThinkingMessage = () => {
@@ -228,24 +245,29 @@ export const ThinkingMessage = () => {
 
   return (
     <motion.div
-      className="w-full mx-auto max-w-3xl px-4 group/message "
-      initial={{ y: 5, opacity: 0 }}
-      animate={{ y: 0, opacity: 1, transition: { delay: 1 } }}
+      className="group/message mx-auto w-full max-w-3xl px-4 "
+      initial={{
+        y      : 5,
+        opacity: 0
+      }}
+      animate={{
+        y         : 0,
+        opacity   : 1,
+        transition: { delay: 1 }
+      }}
       data-role={role}
     >
       <div
         className={cx(
           'flex gap-4 group-data-[role=user]/message:px-3 w-full group-data-[role=user]/message:w-fit group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl group-data-[role=user]/message:py-2 rounded-xl',
-          {
-            'group-data-[role=user]/message:bg-muted': true,
-          },
+          { 'group-data-[role=user]/message:bg-muted': true }
         )}
       >
-        <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full ring-1 ring-border">
           <SparklesIcon size={14} />
         </div>
 
-        <div className="flex flex-col gap-2 w-full">
+        <div className="flex w-full flex-col gap-2">
           <div className="flex flex-col gap-4 text-muted-foreground">
             Thinking...
           </div>
