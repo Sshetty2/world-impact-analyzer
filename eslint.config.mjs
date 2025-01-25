@@ -257,7 +257,7 @@ export default [
       }],
       'lines-between-class-members': ['error', 'always'],
       'max-depth'                  : ['error', 4],
-      'max-len'                    : ['warn', 120],
+      'max-len'                    : 'off',
       'max-lines-per-function'     : 0,
       'max-nested-callbacks'       : ['warn', 7],
       'max-params'                 : ['error', 3],
