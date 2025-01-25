@@ -193,14 +193,14 @@ function PureMultimodalInput ({
   );
 
   return (
-    <div className="relative flex w-full flex-col gap-4">
-      {messages.length === 0
+    <div className="relative mb-5 flex w-full flex-col gap-4">
+      {/* {messages.length === 0
         && attachments.length === 0
         && uploadQueue.length === 0 && (
         <SuggestedActions
           append={append}
           chatId={chatId} />
-      )}
+      )} */}
 
       <input
         type="file"
