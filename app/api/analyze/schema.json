@@ -7,23 +7,35 @@
             "type": "string",
             "description": "Full name of the historical figure"
         },
-        "worldly_impact_index": {
+        "worldly_impact_score": {
             "type": "integer",
-            "minimum": 1,
+            "minimum": 0,
             "maximum": 100,
-            "description": "Overall score (1-100) measuring the person's total impact on human history and civilization"
+            "description": "Overall score (0-100) measuring the person's total impact on human history and civilization"
         },
-        "reach": {
+        "reach_score": {
             "type": "integer",
-            "minimum": 1,
+            "minimum": 0,
             "maximum": 100,
-            "description": "Score (1-100) indicating the global reach and spread of the person's influence across different cultures and regions"
+            "description": "Score (0-100) indicating the global reach and spread of the person's influence"
         },
         "controversy_score": {
             "type": "integer",
             "minimum": 0,
             "maximum": 100,
-            "description": "Percentage (0-100) indicating the level of historical and contemporary controversy surrounding the person"
+            "description": "Score (0-100) indicating the level of historical and contemporary controversy"
+        },
+        "longevity_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Score (0-100) indicating how well their ideas/contributions have stood or will stand the test of time"
+        },
+        "innovation_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Score (0-100) measuring how revolutionary or paradigm-shifting their contributions were for their time"
         },
         "fields_of_impact": {
             "type": "object",
@@ -31,34 +43,50 @@
             "properties": {
                 "science": {
                     "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
                     "description": "Impact score in scientific advancement (0-100)"
                 },
                 "philosophy": {
                     "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
                     "description": "Impact score in philosophical thought (0-100)"
                 },
                 "politics": {
                     "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
                     "description": "Impact score in political theory or governance (0-100)"
                 },
                 "arts": {
                     "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
                     "description": "Impact score in arts and culture (0-100)"
                 },
                 "technology": {
                     "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
                     "description": "Impact score in technological advancement (0-100)"
                 },
                 "social": {
                     "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
                     "description": "Impact score in social movements or change (0-100)"
                 },
                 "religion": {
                     "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
                     "description": "Impact score in religious or spiritual matters (0-100)"
                 },
                 "economics": {
                     "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
                     "description": "Impact score in economic theory or systems (0-100)"
                 }
             }
@@ -384,13 +412,15 @@
                     "type"
                 ]
             }
-        },
+        }
     },
     "required": [
         "name",
-        "worldly_impact_index",
-        "reach",
+        "worldly_impact_score",
+        "reach_score",
         "controversy_score",
+        "longevity_score",
+        "innovation_score",
         "fields_of_impact",
         "sentiment_index",
         "timeline_of_influence",

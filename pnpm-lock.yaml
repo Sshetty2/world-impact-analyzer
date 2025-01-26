@@ -28,13 +28,13 @@ importers:
         version: 6.36.2
       '@langchain/community':
         specifier: ^0.3.27
-        version: 0.3.27(@browserbasehq/sdk@2.0.0)(@browserbasehq/stagehand@1.10.1(@playwright/test@1.50.0)(bufferutil@4.0.9)(deepmerge@4.3.1)(dotenv@16.4.7)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(zod@3.24.1))(@ibm-cloud/watsonx-ai@1.3.2(@langchain/core@0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))))(@langchain/core@0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))(@neondatabase/serverless@0.10.4)(@vercel/postgres@0.10.0)(axios@1.7.4)(faiss-node@0.5.1)(ibm-cloud-sdk-core@5.1.1)(ignore@5.3.2)(jsonwebtoken@9.0.2)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(playwright@1.50.0)(ws@8.18.0(bufferutil@4.0.9))
+        version: 0.3.27(@browserbasehq/sdk@2.0.0)(@browserbasehq/stagehand@1.10.1(@playwright/test@1.50.0)(bufferutil@4.0.9)(deepmerge@4.3.1)(dotenv@16.4.7)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(zod@3.24.1))(@ibm-cloud/watsonx-ai@1.3.2(@langchain/core@0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))))(@langchain/core@0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))(@neondatabase/serverless@0.10.4)(@vercel/postgres@0.10.0)(axios@1.7.4)(faiss-node@0.5.1)(ibm-cloud-sdk-core@5.1.1)(ignore@5.3.2)(jsonwebtoken@9.0.2)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(pickleparser@0.2.1)(playwright@1.50.0)(ws@8.18.0(bufferutil@4.0.9))
       '@langchain/core':
-        specifier: ^0.1.48
-        version: 0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
+        specifier: ^0.3.36
+        version: 0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
       '@langchain/openai':
-        specifier: ^0.0.14
-        version: 0.0.14(ws@8.18.0(bufferutil@4.0.9))
+        specifier: ^0.4.2
+        version: 0.4.2(@langchain/core@0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))(ws@8.18.0(bufferutil@4.0.9))
       '@neondatabase/serverless':
         specifier: ^0.10.4
         version: 0.10.4
@@ -121,7 +121,7 @@ importers:
         version: 1.3.1(next@15.0.3-canary.2(@opentelemetry/api@1.9.0)(@playwright/test@1.50.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
       langchain:
         specifier: ^0.1.21
-        version: 0.1.37(@browserbasehq/sdk@2.0.0)(@neondatabase/serverless@0.10.4)(@vercel/postgres@0.10.0)(axios@1.7.4)(faiss-node@0.5.1)(ignore@5.3.2)(jsonwebtoken@9.0.2)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(playwright@1.50.0)(ws@8.18.0(bufferutil@4.0.9))
+        version: 0.1.37(@browserbasehq/sdk@2.0.0)(@neondatabase/serverless@0.10.4)(@vercel/postgres@0.10.0)(axios@1.7.4)(faiss-node@0.5.1)(ignore@5.3.2)(jsonwebtoken@9.0.2)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(pickleparser@0.2.1)(playwright@1.50.0)(ws@8.18.0(bufferutil@4.0.9))
       lucide-react:
         specifier: ^0.446.0
         version: 0.446.0(react@18.3.1)
@@ -140,6 +140,9 @@ importers:
       orderedmap:
         specifier: ^2.1.1
         version: 2.1.1
+      pickleparser:
+        specifier: ^0.2.1
+        version: 0.2.1
       postgres:
         specifier: ^3.4.4
         version: 3.4.5
@@ -367,6 +370,9 @@ packages:
       dotenv: ^16.4.5
       openai: ^4.62.1
       zod: ^3.23.8
+
+  '@cfworker/json-schema@4.1.0':
+    resolution: {integrity: sha512-/vYKi/qMxwNsuIJ9WGWwM2rflY40ZenK3Kh4uR5vB9/Nz12Y7IUN/Xf4wDA7vzPfw0VNh3b/jz4+MjcVgARKJg==}
 
   '@codemirror/autocomplete@6.18.4':
     resolution: {integrity: sha512-sFAphGQIqyQZfP2ZBsSHV7xQvo9Py0rV0dW7W3IMRdS+zDuNb2l3no78CvUaWKGfzFjI4FTrLdUSj86IGb2hRA==}
@@ -1682,8 +1688,8 @@ packages:
     resolution: {integrity: sha512-qHLvScqERDeH7y2cLuJaSAlMwg3f/3Oc9nayRSXRU2UuaK/SOhI42cxiPLj1FnuHJSmN0rBQFkrLx02gI4mcVg==}
     engines: {node: '>=18'}
 
-  '@langchain/openai@0.0.14':
-    resolution: {integrity: sha512-co6nRylPrLGY/C3JYxhHt6cxLq07P086O7K3QaZH7SFFErIN9wSzJonpvhZR07DEUq6eK6wKgh2ORxA/NcjSRQ==}
+  '@langchain/core@0.3.36':
+    resolution: {integrity: sha512-lOS6f5o2MarjGPomHPhzde9xI3lZW2NIOEdCv0dvjb1ZChWhwXWHtAMHSZmuSB53ySzDWAMkimimHd+Yqz5MwQ==}
     engines: {node: '>=18'}
 
   '@langchain/openai@0.0.34':
@@ -4402,6 +4408,10 @@ packages:
     resolution: {integrity: sha512-cRL3JpS3lKMGsKaWndugWQoLOCoP+Cic8oseVcbr0qhPzYD5DWXK+RZ9LY9wxRf7RQia4SCwQlXk0q6FCPrVng==}
     engines: {node: '>=10'}
 
+  pickleparser@0.2.1:
+    resolution: {integrity: sha512-kMzY3uFYcR6OjOqr7nV2nkaXaBsUEOafu3zgPxeD6s/2ueMfVQH8lrymcDWBPGx0OkVxGMikxQit6jgByXjwBg==}
+    hasBin: true
+
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
@@ -5360,6 +5370,8 @@ snapshots:
       - encoding
       - utf-8-validate
 
+  '@cfworker/json-schema@4.1.0': {}
+
   '@codemirror/autocomplete@6.18.4':
     dependencies:
       '@codemirror/language': 6.10.8
@@ -5724,9 +5736,9 @@ snapshots:
 
   '@humanwhocodes/object-schema@2.0.3': {}
 
-  '@ibm-cloud/watsonx-ai@1.3.2(@langchain/core@0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))':
+  '@ibm-cloud/watsonx-ai@1.3.2(@langchain/core@0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))':
     dependencies:
-      '@langchain/textsplitters': 0.1.0(@langchain/core@0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))
+      '@langchain/textsplitters': 0.1.0(@langchain/core@0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))
       '@types/node': 18.19.74
       extend: 3.0.2
       ibm-cloud-sdk-core: 5.1.1
@@ -5835,7 +5847,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@langchain/community@0.0.57(@neondatabase/serverless@0.10.4)(@vercel/postgres@0.10.0)(faiss-node@0.5.1)(jsonwebtoken@9.0.2)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(ws@8.18.0(bufferutil@4.0.9))':
+  '@langchain/community@0.0.57(@neondatabase/serverless@0.10.4)(@vercel/postgres@0.10.0)(faiss-node@0.5.1)(jsonwebtoken@9.0.2)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(pickleparser@0.2.1)(ws@8.18.0(bufferutil@4.0.9))':
     dependencies:
       '@langchain/core': 0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
       '@langchain/openai': 0.0.34(ws@8.18.0(bufferutil@4.0.9))
@@ -5850,23 +5862,24 @@ snapshots:
       '@vercel/postgres': 0.10.0
       faiss-node: 0.5.1
       jsonwebtoken: 9.0.2
+      pickleparser: 0.2.1
       ws: 8.18.0(bufferutil@4.0.9)
     transitivePeerDependencies:
       - encoding
       - openai
 
-  '@langchain/community@0.3.27(@browserbasehq/sdk@2.0.0)(@browserbasehq/stagehand@1.10.1(@playwright/test@1.50.0)(bufferutil@4.0.9)(deepmerge@4.3.1)(dotenv@16.4.7)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(zod@3.24.1))(@ibm-cloud/watsonx-ai@1.3.2(@langchain/core@0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))))(@langchain/core@0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))(@neondatabase/serverless@0.10.4)(@vercel/postgres@0.10.0)(axios@1.7.4)(faiss-node@0.5.1)(ibm-cloud-sdk-core@5.1.1)(ignore@5.3.2)(jsonwebtoken@9.0.2)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(playwright@1.50.0)(ws@8.18.0(bufferutil@4.0.9))':
+  '@langchain/community@0.3.27(@browserbasehq/sdk@2.0.0)(@browserbasehq/stagehand@1.10.1(@playwright/test@1.50.0)(bufferutil@4.0.9)(deepmerge@4.3.1)(dotenv@16.4.7)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(zod@3.24.1))(@ibm-cloud/watsonx-ai@1.3.2(@langchain/core@0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))))(@langchain/core@0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))(@neondatabase/serverless@0.10.4)(@vercel/postgres@0.10.0)(axios@1.7.4)(faiss-node@0.5.1)(ibm-cloud-sdk-core@5.1.1)(ignore@5.3.2)(jsonwebtoken@9.0.2)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(pickleparser@0.2.1)(playwright@1.50.0)(ws@8.18.0(bufferutil@4.0.9))':
     dependencies:
       '@browserbasehq/stagehand': 1.10.1(@playwright/test@1.50.0)(bufferutil@4.0.9)(deepmerge@4.3.1)(dotenv@16.4.7)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(zod@3.24.1)
-      '@ibm-cloud/watsonx-ai': 1.3.2(@langchain/core@0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))
-      '@langchain/core': 0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
-      '@langchain/openai': 0.4.2(@langchain/core@0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))(ws@8.18.0(bufferutil@4.0.9))
+      '@ibm-cloud/watsonx-ai': 1.3.2(@langchain/core@0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))
+      '@langchain/core': 0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
+      '@langchain/openai': 0.4.2(@langchain/core@0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))(ws@8.18.0(bufferutil@4.0.9))
       binary-extensions: 2.3.0
       expr-eval: 2.0.2
       flat: 5.0.2
       ibm-cloud-sdk-core: 5.1.1
       js-yaml: 4.1.0
-      langchain: 0.3.13(@langchain/core@0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))(axios@1.7.4)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(ws@8.18.0(bufferutil@4.0.9))
+      langchain: 0.3.13(@langchain/core@0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))(axios@1.7.4)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(ws@8.18.0(bufferutil@4.0.9))
       langsmith: 0.3.3(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
       openai: 4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)
       uuid: 10.0.0
@@ -5879,6 +5892,7 @@ snapshots:
       faiss-node: 0.5.1
       ignore: 5.3.2
       jsonwebtoken: 9.0.2
+      pickleparser: 0.2.1
       playwright: 1.50.0
       ws: 8.18.0(bufferutil@4.0.9)
     transitivePeerDependencies:
@@ -5930,20 +5944,26 @@ snapshots:
     transitivePeerDependencies:
       - openai
 
-  '@langchain/openai@0.0.14(ws@8.18.0(bufferutil@4.0.9))':
+  '@langchain/core@0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))':
     dependencies:
-      '@langchain/core': 0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
+      '@cfworker/json-schema': 4.1.0
+      ansi-styles: 5.2.0
+      camelcase: 6.3.0
+      decamelize: 1.2.0
       js-tiktoken: 1.0.16
-      openai: 4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)
+      langsmith: 0.3.3(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
+      mustache: 4.2.0
+      p-queue: 6.6.2
+      p-retry: 4.6.2
+      uuid: 10.0.0
       zod: 3.24.1
       zod-to-json-schema: 3.24.1(zod@3.24.1)
     transitivePeerDependencies:
-      - encoding
-      - ws
+      - openai
 
   '@langchain/openai@0.0.34(ws@8.18.0(bufferutil@4.0.9))':
     dependencies:
-      '@langchain/core': 0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
+      '@langchain/core': 0.2.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
       js-tiktoken: 1.0.16
       openai: 4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)
       zod: 3.24.1
@@ -5952,9 +5972,9 @@ snapshots:
       - encoding
       - ws
 
-  '@langchain/openai@0.4.2(@langchain/core@0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))(ws@8.18.0(bufferutil@4.0.9))':
+  '@langchain/openai@0.4.2(@langchain/core@0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))(ws@8.18.0(bufferutil@4.0.9))':
     dependencies:
-      '@langchain/core': 0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
+      '@langchain/core': 0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
       js-tiktoken: 1.0.16
       openai: 4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)
       zod: 3.24.1
@@ -5970,9 +5990,9 @@ snapshots:
     transitivePeerDependencies:
       - openai
 
-  '@langchain/textsplitters@0.1.0(@langchain/core@0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))':
+  '@langchain/textsplitters@0.1.0(@langchain/core@0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))':
     dependencies:
-      '@langchain/core': 0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
+      '@langchain/core': 0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
       js-tiktoken: 1.0.16
 
   '@lezer/common@1.2.3': {}
@@ -8066,10 +8086,10 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
 
-  langchain@0.1.37(@browserbasehq/sdk@2.0.0)(@neondatabase/serverless@0.10.4)(@vercel/postgres@0.10.0)(axios@1.7.4)(faiss-node@0.5.1)(ignore@5.3.2)(jsonwebtoken@9.0.2)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(playwright@1.50.0)(ws@8.18.0(bufferutil@4.0.9)):
+  langchain@0.1.37(@browserbasehq/sdk@2.0.0)(@neondatabase/serverless@0.10.4)(@vercel/postgres@0.10.0)(axios@1.7.4)(faiss-node@0.5.1)(ignore@5.3.2)(jsonwebtoken@9.0.2)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(pickleparser@0.2.1)(playwright@1.50.0)(ws@8.18.0(bufferutil@4.0.9)):
     dependencies:
       '@anthropic-ai/sdk': 0.9.1
-      '@langchain/community': 0.0.57(@neondatabase/serverless@0.10.4)(@vercel/postgres@0.10.0)(faiss-node@0.5.1)(jsonwebtoken@9.0.2)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(ws@8.18.0(bufferutil@4.0.9))
+      '@langchain/community': 0.0.57(@neondatabase/serverless@0.10.4)(@vercel/postgres@0.10.0)(faiss-node@0.5.1)(jsonwebtoken@9.0.2)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(pickleparser@0.2.1)(ws@8.18.0(bufferutil@4.0.9))
       '@langchain/core': 0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
       '@langchain/openai': 0.0.34(ws@8.18.0(bufferutil@4.0.9))
       '@langchain/textsplitters': 0.0.3(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
@@ -8165,10 +8185,10 @@ snapshots:
       - vectordb
       - voy-search
 
-  langchain@0.3.13(@langchain/core@0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))(axios@1.7.4)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(ws@8.18.0(bufferutil@4.0.9)):
+  langchain@0.3.13(@langchain/core@0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))(axios@1.7.4)(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))(ws@8.18.0(bufferutil@4.0.9)):
     dependencies:
-      '@langchain/core': 0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
-      '@langchain/openai': 0.4.2(@langchain/core@0.1.63(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))(ws@8.18.0(bufferutil@4.0.9))
+      '@langchain/core': 0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
+      '@langchain/openai': 0.4.2(@langchain/core@0.3.36(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)))(ws@8.18.0(bufferutil@4.0.9))
       '@langchain/textsplitters': 0.0.3(openai@4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1))
       js-tiktoken: 1.0.16
       js-yaml: 4.1.0
@@ -8919,6 +8939,8 @@ snapshots:
       postgres-date: 2.1.0
       postgres-interval: 3.0.0
       postgres-range: 1.1.4
+
+  pickleparser@0.2.1: {}
 
   picocolors@1.1.1: {}
 
