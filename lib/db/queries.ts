@@ -14,7 +14,8 @@ import {
   suggestion,
   type Message,
   message,
-  vote
+  vote,
+  historicalFigureAnalysis
 } from './schema';
 import { BlockKind } from '@/components/block';
 
@@ -330,6 +331,48 @@ export async function updateChatVisiblityById ({
       .where(eq(chat.id, chatId));
   } catch (error) {
     console.error('Failed to update chat visibility in database');
+    throw error;
+  }
+}
+
+export async function getCachedAnalysis (name: string) {
+  try {
+    const [cached] = await db
+      .select()
+      .from(historicalFigureAnalysis)
+      .where(eq(historicalFigureAnalysis.name, name.toLowerCase()));
+
+    return cached?.analysis || null;
+  } catch (error) {
+    console.error('Failed to get cached analysis from database');
+    throw error;
+  }
+}
+
+export async function saveAnalysisToCache ({
+  name,
+  analysis
+}: {
+  name: string;
+  analysis: any;
+}) {
+  try {
+    return await db
+      .insert(historicalFigureAnalysis)
+      .values({
+        name     : name.toLowerCase(),
+        analysis,
+        createdAt: new Date()
+      })
+      .onConflictDoUpdate({
+        target: historicalFigureAnalysis.name,
+        set   : {
+          analysis,
+          createdAt: new Date()
+        }
+      });
+  } catch (error) {
+    console.error('Failed to save analysis to cache');
     throw error;
   }
 }

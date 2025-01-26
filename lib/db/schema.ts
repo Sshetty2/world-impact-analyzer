@@ -114,3 +114,12 @@ export const suggestion = pgTable(
 );
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
+
+export const historicalFigureAnalysis = pgTable('historical_figure_analysis', {
+  name     : text('name').primaryKey(),
+  analysis : json('analysis').notNull(),
+  createdAt: timestamp('created_at').notNull()
+    .defaultNow()
+});
+
+export type HistoricalFigureAnalysis = InferSelectModel<typeof historicalFigureAnalysis>;

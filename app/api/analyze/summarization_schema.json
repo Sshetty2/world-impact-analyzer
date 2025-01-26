@@ -1,0 +1,60 @@
+{
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "The name of the historical figure"
+        },
+        "cultural_influence": {
+            "type": "string",
+            "description": "A generalized but concise description of how the figure impacted society and the lasting effects of their works"
+        },
+        "major_contributions": {
+            "type": "string",
+            "description": "A generalized but concise description of the figure's most important contributions"
+        },
+        "controversies": {
+            "type": "string",
+            "description": "A generalized but concise description of controversies surrounding the figure, if any"
+        },
+        "interpersonal_influence": {
+            "type": "string",
+            "description": "A description of the figure's influence on or interactions with their contemporaries and collaborators"
+        },
+        "geographical_influence": {
+            "type": "string",
+            "description": "A description of the regions or countries where the figure's work had the greatest impact"
+        },
+        "timeline_of_influence": {
+            "type": "array",
+            "description": "A detailed description of the figure's timeline of influence, including major events and dates of their contributions",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "year": {
+                        "type": "string",
+                        "description": "The year or time period of the event"
+                    },
+                    "event": {
+                        "type": "string",
+                        "description": "A description of the significant event or contribution"
+                    }
+                }
+            }
+        },
+        "legacy_and_enduring_relevance": {
+            "type": "string",
+            "description": "A summary of the figure's enduring legacy and relevance in the modern day, including how their ideas, works, or controversies are perceived now"
+        }
+    },
+    "required": [
+        "name",
+        "cultural_influence",
+        "major_contributions",
+        "controversies",
+        "timeline_of_influence",
+        "interpersonal_influence",
+        "geographical_influence",
+        "legacy_and_enduring_relevance"
+    ]
+}

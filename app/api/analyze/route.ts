@@ -1,69 +1,36 @@
-import { ChatOpenAI, OpenAIEmbeddings } from '@langchain/openai';
+/* eslint-disable max-statements */
+import { ChatOpenAI } from '@langchain/openai';
 import { WikipediaQueryRun } from '@langchain/community/tools/wikipedia_query_run';
-import { MemoryVectorStore } from 'langchain/vectorstores/memory';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { RunnableSequence } from '@langchain/core/runnables';
-import { Document } from '@langchain/core/documents';
 import { NextResponse } from 'next/server';
-import schema from './schema.json';
+import { summarizeWikiContent } from './summarize';
+import { getCachedAnalysis, saveAnalysisToCache } from '@/lib/db/queries';
+import schema from './analysis_schema.json';
 
-const formatDocs = (docs: Document[]): string => docs.map(doc => doc.pageContent).join('\n\n');
+const wikipediaTool = new WikipediaQueryRun({
+  topKResults        : 4,
+  maxDocContentLength: 60000
+});
 
-const createAnalysisChain = async (personName: string) => {
-  try {
-    const wikipediaTool = new WikipediaQueryRun({
-      topKResults        : 2,
-      maxDocContentLength: 4000
-    });
-    const wikiContent = await wikipediaTool.invoke(personName);
+const llm = new ChatOpenAI({
+  modelName   : 'gpt-4o',
+  temperature : 1,
+  openAIApiKey: process.env.OPENAI_API_KEY
+}).withStructuredOutput!(schema);
 
-    const embeddings = new OpenAIEmbeddings({
-      modelName   : 'text-embedding-3-small',
-      openAIApiKey: process.env.OPENAI_API_KEY
-    });
+const prompt = ChatPromptTemplate.fromMessages([
+  ['system', 'Analyze this historical figure and feel free to use the following context from this Wikipedia summary: {context}']
+]);
 
-    const vectorstore = await MemoryVectorStore.fromTexts(
-      [wikiContent],
-      [{ source: 'wikipedia' }],
-      embeddings
-    );
+const hasEnhancedBioMarkers = (content: string, name: string): boolean => {
+  const nameRegex = new RegExp(`\\b${name}\\b`, 'i');
+  const bioMarkers = [
+    /\b(born in|died in|achieved|contributed to|known for)\b/i,
+    /\b(\d{4}–\d{4}|\d{4}–present)\b/
+  ];
 
-    const llm = new ChatOpenAI({
-      modelName   : 'gpt-4o',
-      temperature : 1,
-      openAIApiKey: process.env.OPENAI_API_KEY
-    });
-
-    if (llm.withStructuredOutput == undefined) {
-      throw new Error('LLM does not support structured output');
-    }
-
-    const llmWithStructuredOutput = llm.withStructuredOutput(schema);
-
-    const prompt = ChatPromptTemplate.fromMessages([
-      ['system', 'Analyze this historical figure and feel free to use the following context from Wikipedia: {context}']
-    ]);
-
-    const chain = RunnableSequence.from([
-      {
-        context: async (input: { query: string }) => {
-          const docs = await vectorstore.similaritySearch(input.query, 3);
-
-          return formatDocs(docs);
-        },
-        query: (input: { query: string }) => input.query
-      },
-      prompt,
-      llmWithStructuredOutput
-    ]);
-
-    return chain;
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      throw new Error(`Error creating analysis chain: ${error.message}`);
-    }
-    throw new Error('Unknown error occurred while creating analysis chain');
-  }
+  return nameRegex.test(content) && bioMarkers.some(marker => marker.test(content));
 };
 
 export async function POST (request: Request) {
@@ -77,11 +44,56 @@ export async function POST (request: Request) {
       );
     }
 
-    const chain = await createAnalysisChain(personName);
+    const cachedResult = await getCachedAnalysis(personName);
+
+    if (cachedResult) {
+      return NextResponse.json({
+        status: 'existing',
+        result: cachedResult
+      });
+    }
+
+    let wikiContent: string;
+
+    try {
+      wikiContent = await wikipediaTool.invoke(personName);
+
+      if (!hasEnhancedBioMarkers(wikiContent, personName)) {
+        return NextResponse.json(
+          { error: 'No relevant biography markers found in the Wikipedia entry' },
+          { status: 400 }
+        );
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Could not find Wikipedia entry for this person' },
+        { status: 400 }
+      );
+    }
+
+    const summary = await summarizeWikiContent(wikiContent, personName);
+
+    const chain = RunnableSequence.from([
+      {
+        context: () => JSON.stringify(summary, null, 2),
+        query  : (input: { query: string }) => input.query
+      },
+      prompt,
+      llm
+    ]);
+
     const result = await chain.invoke({ query: personName });
 
-    return NextResponse.json(result);
-  } catch (error: unknown) {
+    await saveAnalysisToCache({
+      name    : personName,
+      analysis: result
+    });
+
+    return NextResponse.json({
+      status: 'new',
+      result
+    });
+  } catch (error) {
     if (error instanceof SyntaxError) {
       return NextResponse.json(
         { error: 'Invalid request format' },
@@ -89,17 +101,8 @@ export async function POST (request: Request) {
       );
     }
 
-    if (error instanceof Error) {
-      if (error.message?.includes('analysis chain')) {
-        return NextResponse.json(
-          { error: 'External service error' },
-          { status: 502 }
-        );
-      }
-    }
-
     return NextResponse.json(
-      { error: 'Failed to generate analysis' },
+      { error: error instanceof Error ? error.message : 'Failed to generate analysis' },
       { status: 500 }
     );
   }

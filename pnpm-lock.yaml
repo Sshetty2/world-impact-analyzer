@@ -137,6 +137,9 @@ importers:
       next-themes:
         specifier: ^0.3.0
         version: 0.3.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      openai:
+        specifier: ^4.80.1
+        version: 4.80.1(ws@8.18.0(bufferutil@4.0.9))(zod@3.24.1)
       orderedmap:
         specifier: ^2.1.1
         version: 2.1.1
