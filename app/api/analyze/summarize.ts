@@ -1,10 +1,7 @@
 import OpenAI from 'openai';
 import schema from './summarization_schema.json';
 
-const summarizationClient = new OpenAI({
-  baseURL: 'https://api.deepseek.com',
-  apiKey : process.env.DEEPSEEK_API_KEY
-});
+const summarizationClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const generateSystemPrompt = (wikiContent: string, personName: string) => `Please extract and organize key information about this historical or modern figure: ${personName}.
 
@@ -29,7 +26,7 @@ ${wikiContent}`;
 export async function summarizeWikiContent (wikiContent: string, personName: string) {
   try {
     const completion = await summarizationClient.chat.completions.create({
-      model   : 'deepseek-chat',
+      model   : 'gpt-3.5-turbo',
       messages: [
         {
           role   : 'system',

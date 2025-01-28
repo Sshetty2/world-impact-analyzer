@@ -10,7 +10,7 @@ import schema from './analysis_schema.json';
 
 const wikipediaTool = new WikipediaQueryRun({
   topKResults        : 4,
-  maxDocContentLength: 60000
+  maxDocContentLength: 40000
 });
 
 const llm = new ChatOpenAI({
@@ -44,13 +44,22 @@ export async function POST (request: Request) {
       );
     }
 
-    const cachedResult = await getCachedAnalysis(personName);
+    let cachedResult;
 
-    if (cachedResult) {
-      return NextResponse.json({
-        status: 'existing',
-        result: cachedResult
-      });
+    try {
+      cachedResult = await getCachedAnalysis(personName);
+
+      if (cachedResult) {
+        return NextResponse.json({
+          status: 'existing',
+          result: cachedResult
+        });
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Error retrieving cached analysis' },
+        { status: 500 }
+      );
     }
 
     let wikiContent: string;
@@ -71,7 +80,16 @@ export async function POST (request: Request) {
       );
     }
 
-    const summary = await summarizeWikiContent(wikiContent, personName);
+    let summary;
+
+    try {
+      summary = await summarizeWikiContent(wikiContent, personName);
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Could not summarize Wikipedia entry' },
+        { status: 400 }
+      );
+    }
 
     const chain = RunnableSequence.from([
       {

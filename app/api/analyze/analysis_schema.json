@@ -37,6 +37,62 @@
             "maximum": 100,
             "description": "Score (0-100) measuring how revolutionary or paradigm-shifting their contributions were for their time"
         },
+        "influence_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Score (0-100) indicating the overall breadth and depth of the person's influence across multiple domains"
+        },
+        "personality_characteristics": {
+            "type": "object",
+            "description": "Personality traits of the historical figure",
+            "properties": {
+                "visionary": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Score (0-100) reflecting the person's forward-thinking ability and long-term vision"
+                },
+                "resilience": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Score (0-100) reflecting the person's ability to overcome adversity"
+                },
+                "charisma": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Score (0-100) reflecting the person's ability to inspire and attract followers"
+                },
+                "empathy": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Score (0-100) reflecting the person's understanding of and care for others' perspectives"
+                },
+                "adaptability": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Score (0-100) reflecting the person's ability to adjust to changing circumstances"
+                },
+                "controversial_nature": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Score (0-100) reflecting how polarizing the person was"
+                }
+            },
+            "required": [
+                "visionary",
+                "resilience",
+                "charisma",
+                "empathy",
+                "adaptability",
+                "controversial_nature"
+            ]
+        },
         "fields_of_impact": {
             "type": "object",
             "description": "Key areas of influence with weighted percentages showing relative impact in each field",
@@ -207,6 +263,10 @@
                     "summary": {
                         "type": "string",
                         "description": "Brief explanation of the contribution and its significance"
+                    },
+                    "date": {
+                        "type": "string",
+                        "description": "The date of the contribution"
                     }
                 },
                 "required": [
@@ -421,6 +481,8 @@
         "controversy_score",
         "longevity_score",
         "innovation_score",
+        "influence_score",
+        "personality_characteristics",
         "fields_of_impact",
         "sentiment_index",
         "timeline_of_influence",
