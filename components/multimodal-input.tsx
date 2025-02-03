@@ -41,6 +41,7 @@ function PureMultimodalInput ({
   setMessages,
   append,
   handleSubmit,
+  setAnalysisData,
   className
 }: {
   chatId: string;
@@ -63,6 +64,7 @@ function PureMultimodalInput ({
     chatRequestOptions?: ChatRequestOptions,
   ) => void;
   className?: string;
+  setAnalysisData?: Dispatch<SetStateAction<any>>;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -118,26 +120,49 @@ function PureMultimodalInput ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
 
-  const submitForm = useCallback(() => {
+  const submitForm = useCallback(async () => {
     window.history.replaceState({}, '', `/chat/${chatId}`);
 
-    handleSubmit(undefined, { experimental_attachments: attachments });
+    try {
+      const response = await fetch('/api/analyze', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ personName: input })
+      });
 
-    setAttachments([]);
-    setLocalStorageInput('');
-    resetHeight();
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error(error.error || 'Analysis failed');
 
-    if (width && width > 768) {
-      textareaRef.current?.focus();
+        return;
+      }
+
+      const analysisResponse = await response.json();
+
+      console.log({ analysisResponse });
+
+      if (analysisResponse.status === 'existing' || analysisResponse.status === 'new') {
+        setAnalysisData?.(analysisResponse.result);
+      }
+
+      // // Use the existing handleSubmit to send both the original query and the analysis
+      // handleSubmit(undefined, {
+      //   experimental_attachments: attachments,
+      //   additionalContent       : analysis
+      // });
+
+      setAttachments([]);
+      setLocalStorageInput('');
+      resetHeight();
+
+      if (width && width > 768) {
+        textareaRef.current?.focus();
+      }
+    } catch (error) {
+      toast.error('Failed to process request');
+      console.error('Error in submitForm:', error);
     }
-  }, [
-    attachments,
-    handleSubmit,
-    setAttachments,
-    setLocalStorageInput,
-    width,
-    chatId
-  ]);
+  }, [chatId, input, setAttachments, setLocalStorageInput, width, setAnalysisData]);
 
   const uploadFile = async (file: File) => {
     const formData = new FormData();

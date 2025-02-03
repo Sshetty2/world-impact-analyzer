@@ -13,6 +13,7 @@ import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
 import { VisibilityType } from './visibility-selector';
 import { useBlockSelector } from '@/hooks/use-block';
+import { AnalysisPanel } from './analysis/analysis-panel';
 
 export function Chat ({
   id,
@@ -27,6 +28,7 @@ export function Chat ({
   selectedVisibilityType: VisibilityType;
   isReadonly: boolean;
 }) {
+  const [analysisData, setAnalysisData] = useState(null);
   const { mutate } = useSWRConfig();
 
   const {
@@ -61,14 +63,16 @@ export function Chat ({
   const isBlockVisible = useBlockSelector(state => state.isVisible);
 
   return (
-    <>
+    <div className="h-screen overflow-hidden"> {/* Add a fixed height container */}
       <PanelGroup
         direction="horizontal"
-        className="h-dvh">
+        className="h-screen overflow-hidden"
+      >
         {/* Left side - Chat container */}
         <Panel
           defaultSize={50}
-          minSize={20}>
+          minSize={20}
+        >
           <div className="flex h-full min-w-0 flex-col bg-background">
             <ChatHeader
               chatId={id}
@@ -76,7 +80,6 @@ export function Chat ({
               selectedVisibilityType={selectedVisibilityType}
               isReadonly={isReadonly}
             />
-
             <Messages
               chatId={id}
               isLoading={isLoading}
@@ -87,12 +90,12 @@ export function Chat ({
               isReadonly={isReadonly}
               isBlockVisible={isBlockVisible}
             />
-
             <form className="mx-auto flex w-full gap-2 bg-background px-4 pb-4 md:pb-6">
               {!isReadonly && (
                 <MultimodalInput
                   chatId={id}
                   input={input}
+                  setAnalysisData={setAnalysisData}
                   setInput={setInput}
                   handleSubmit={handleSubmit}
                   isLoading={isLoading}
@@ -107,33 +110,13 @@ export function Chat ({
             </form>
           </div>
         </Panel>
-
         <PanelResizeHandle className="w-1 bg-border transition-colors hover:bg-accent" />
-
-        {/* Right side - Block component */}
         <Panel
           defaultSize={50}
           minSize={20}>
-          <div className="h-full overflow-y-auto bg-background">
-            <Block
-              chatId={id}
-              input={input}
-              setInput={setInput}
-              handleSubmit={handleSubmit}
-              isLoading={isLoading}
-              stop={stop}
-              attachments={attachments}
-              setAttachments={setAttachments}
-              append={append}
-              messages={messages}
-              setMessages={setMessages}
-              reload={reload}
-              votes={votes}
-              isReadonly={isReadonly}
-            />
-          </div>
+          <AnalysisPanel data={analysisData} />
         </Panel>
       </PanelGroup>
-    </>
+    </div>
   );
 }
