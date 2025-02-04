@@ -28,7 +28,7 @@ export function Chat ({
   selectedModelId: string;
   selectedVisibilityType: VisibilityType;
   isReadonly: boolean;
-  analysisResponse: any;
+  analysisResponse?: any;
 }) {
   const [analysisData, setAnalysisData] = useState(analysisResponse);
   const [isAnalyzing, setIsAnalyzing] = useState(true);
