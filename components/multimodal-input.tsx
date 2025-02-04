@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 'use client';
 
 import type {
@@ -28,6 +29,7 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { SuggestedActions } from './suggested-actions';
 import equal from 'fast-deep-equal';
+import { AnalysisInstructions } from './analysis-instructions';
 
 function PureMultimodalInput ({
   chatId,
@@ -68,6 +70,8 @@ function PureMultimodalInput ({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
+  const [isAnalyzed, setIsAnalyzed] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -120,49 +124,19 @@ function PureMultimodalInput ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
 
-  const submitForm = useCallback(async () => {
+  const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`);
 
-    try {
-      const response = await fetch('/api/analyze', {
-        method : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ personName: input })
-      });
+    handleSubmit(undefined, { experimental_attachments: attachments });
 
-      if (!response.ok) {
-        const error = await response.json();
-        toast.error(error.error || 'Analysis failed');
+    setAttachments([]);
+    setLocalStorageInput('');
+    resetHeight();
 
-        return;
-      }
-
-      const analysisResponse = await response.json();
-
-      console.log({ analysisResponse });
-
-      if (analysisResponse.status === 'existing' || analysisResponse.status === 'new') {
-        setAnalysisData?.(analysisResponse.result);
-      }
-
-      // // Use the existing handleSubmit to send both the original query and the analysis
-      // handleSubmit(undefined, {
-      //   experimental_attachments: attachments,
-      //   additionalContent       : analysis
-      // });
-
-      setAttachments([]);
-      setLocalStorageInput('');
-      resetHeight();
-
-      if (width && width > 768) {
-        textareaRef.current?.focus();
-      }
-    } catch (error) {
-      toast.error('Failed to process request');
-      console.error('Error in submitForm:', error);
+    if (width && width > 768) {
+      textareaRef.current?.focus();
     }
-  }, [chatId, input, setAttachments, setLocalStorageInput, width, setAnalysisData]);
+  }, [chatId, handleSubmit, attachments, setAttachments, setLocalStorageInput, width]);
 
   const uploadFile = async (file: File) => {
     const formData = new FormData();
@@ -217,6 +191,108 @@ function PureMultimodalInput ({
     [setAttachments]
   );
 
+  const handleNameSubmit = useCallback(async () => {
+    if (!input.trim()) {
+      toast.error('Please enter a name');
+
+      return;
+    }
+
+    setIsAnalyzing(true);
+
+    try {
+      const response = await fetch('/api/analyze', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ personName: input })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error(error.error || 'Analysis failed');
+
+        return;
+      }
+
+      const analysisResponse = await response.json();
+
+      if (analysisResponse.status === 'existing' || analysisResponse.status === 'new') {
+        setAnalysisData?.(analysisResponse.result);
+        setIsAnalyzed(true);
+
+        if (analysisResponse.result) {
+          window.history.replaceState({}, '', `/chat/${chatId}`);
+
+          handleSubmit(undefined, {
+            experimental_attachments: attachments,
+            body                    : { analysisResponse: analysisResponse.result }
+          });
+
+          setAttachments([]);
+          setLocalStorageInput('');
+          resetHeight();
+
+          if (width && width > 768) {
+            textareaRef.current?.focus();
+          }
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to process request');
+      console.error('Error in handleNameSubmit:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [attachments, chatId, handleSubmit, input, setAnalysisData, setAttachments, setLocalStorageInput, width]);
+
+  if (messages.length === 0) {
+    return (
+      <div className="relative flex w-full flex-col gap-6">
+        <div className="relative flex w-full flex-col gap-4">
+          <Textarea
+            ref={textareaRef}
+            placeholder="Enter a person's name to analyze..."
+            value={input}
+            onChange={handleInput}
+            className={cx(
+              'resize-none rounded-2xl !text-base bg-muted dark:border-zinc-700',
+              'min-h-[40px] py-2 pb-2',
+              className
+            )}
+            rows={1}
+            autoFocus
+            onKeyDown={event => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                handleNameSubmit();
+              }
+            }}
+          />
+          <div className="absolute right-0 top-[5px] flex w-fit flex-row justify-end pr-2">
+            <Button
+              className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
+              onClick={event => {
+                event.preventDefault();
+                handleNameSubmit();
+              }}
+              disabled={input.length === 0 || isAnalyzing}
+            >
+              {isAnalyzing ? (
+                <div className="flex items-center">
+                  <div className="size-3.5 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600" />
+                </div>
+              ) : (
+                <ArrowUpIcon size={14} />
+              )}
+            </Button>
+          </div>
+        </div>
+        <AnalysisInstructions />
+      </div>
+    );
+  }
+
+  // After analysis, show the regular chat input
   return (
     <div className="relative mb-5 flex w-full flex-col gap-4">
       {/* {messages.length === 0
@@ -264,7 +340,7 @@ function PureMultimodalInput ({
         value={input}
         onChange={handleInput}
         className={cx(
-          'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-2xl !text-base bg-muted pb-10 dark:border-zinc-700',
+          'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-1xl !text-base bg-muted pb-10 dark:border-zinc-700',
           className
         )}
         rows={2}

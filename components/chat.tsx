@@ -8,27 +8,30 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { ChatHeader } from '@/components/chat-header';
 import type { Vote } from '@/lib/db/schema';
 import { fetcher } from '@/lib/utils';
-import { Block } from './block';
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
 import { VisibilityType } from './visibility-selector';
 import { useBlockSelector } from '@/hooks/use-block';
 import { AnalysisPanel } from './analysis/analysis-panel';
+import cx from 'classnames';
 
 export function Chat ({
   id,
   initialMessages,
   selectedModelId,
   selectedVisibilityType,
-  isReadonly
+  isReadonly,
+  analysisResponse
 }: {
   id: string;
   initialMessages: Array<Message>;
   selectedModelId: string;
   selectedVisibilityType: VisibilityType;
   isReadonly: boolean;
+  analysisResponse: any;
 }) {
-  const [analysisData, setAnalysisData] = useState(null);
+  const [analysisData, setAnalysisData] = useState(analysisResponse);
+  const [isAnalyzing, setIsAnalyzing] = useState(true);
   const { mutate } = useSWRConfig();
 
   const {
@@ -63,39 +66,52 @@ export function Chat ({
   const isBlockVisible = useBlockSelector(state => state.isVisible);
 
   return (
-    <div className="h-screen overflow-hidden"> {/* Add a fixed height container */}
+    <div className="h-screen overflow-hidden">
       <PanelGroup
         direction="horizontal"
         className="h-screen overflow-hidden"
       >
-        {/* Left side - Chat container */}
         <Panel
           defaultSize={50}
           minSize={20}
         >
-          <div className="flex h-full min-w-0 flex-col bg-background">
+          <div className="absolute inset-x-0 top-0 z-10">
             <ChatHeader
               chatId={id}
               selectedModelId={selectedModelId}
               selectedVisibilityType={selectedVisibilityType}
               isReadonly={isReadonly}
             />
-            <Messages
-              chatId={id}
-              isLoading={isLoading}
-              votes={votes}
-              messages={messages}
-              setMessages={setMessages}
-              reload={reload}
-              isReadonly={isReadonly}
-              isBlockVisible={isBlockVisible}
-            />
-            <form className="mx-auto flex w-full gap-2 bg-background px-4 pb-4 md:pb-6">
+          </div>
+          <div className={cx(
+            'relative flex h-full min-w-0 flex-col bg-background',
+            messages.length === 0 && 'justify-center -mt-32'
+          )}>
+
+            {messages.length > 0 && (
+              <Messages
+                chatId={id}
+                isLoading={isLoading}
+                votes={votes}
+                messages={messages}
+                setMessages={setMessages}
+                reload={reload}
+                isReadonly={isReadonly}
+                isBlockVisible={isBlockVisible}
+              />
+            )}
+            <form className={cx(
+              'mx-auto flex w-full gap-2 bg-background px-4 pb-4 md:pb-6',
+              isAnalyzing && 'max-w-2xl'
+            )}>
               {!isReadonly && (
                 <MultimodalInput
                   chatId={id}
                   input={input}
-                  setAnalysisData={setAnalysisData}
+                  setAnalysisData={data => {
+                    setAnalysisData(data);
+                    setIsAnalyzing(false);
+                  }}
                   setInput={setInput}
                   handleSubmit={handleSubmit}
                   isLoading={isLoading}
@@ -110,7 +126,7 @@ export function Chat ({
             </form>
           </div>
         </Panel>
-        <PanelResizeHandle className="w-1 bg-border transition-colors hover:bg-accent" />
+        <PanelResizeHandle className="z-20 w-1 bg-border transition-colors hover:bg-accent" />
         <Panel
           defaultSize={50}
           minSize={20}>

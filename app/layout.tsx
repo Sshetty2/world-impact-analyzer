@@ -7,8 +7,8 @@ import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://chat.vercel.ai'),
-  title       : 'Next.js Chatbot Template',
-  description : 'Next.js chatbot template using the AI SDK.'
+  title       : 'World Impact Analyzer',
+  description : 'Analyze the public presence and personality traits of a person.'
 };
 
 // Disable auto-zoom on mobile Safari

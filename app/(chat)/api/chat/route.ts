@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 import {
   type Message,
   convertToCoreMessages,
@@ -31,7 +32,7 @@ import {
   sanitizeResponseMessages
 } from '@/lib/utils';
 
-import { generateTitleFromUserMessage } from '../../actions';
+// import { generateTitleFromUserMessage } from '../../actions';
 
 export const maxDuration = 60;
 
@@ -51,12 +52,40 @@ const weatherTools: AllowedTools[] = ['getWeather'];
 
 const allTools: AllowedTools[] = [...blocksTools, ...weatherTools];
 
+// Add this new function to create a specialized system prompt with analysis data
+function createAnalysisSystemPrompt (analysisResponse: any) {
+  return `${systemPrompt}
+
+For the purposes of chatting with the user, we have analyzed this historical figure: ${analysisResponse.name}
+
+Key metrics and information about this person:
+- World Impact: ${analysisResponse.worldly_impact_score}/100
+- Reach: ${analysisResponse.reach_score}/100
+- Innovation: ${analysisResponse.innovation_score}/100
+- Influence: ${analysisResponse.influence_score}/100
+- Controversy: ${analysisResponse.controversy_score}/100
+- Longevity of Impact: ${analysisResponse.longevity_score}/100
+
+JSON: ${JSON.stringify(analysisResponse)}
+
+Instructions:
+1. Use this data to provide informed, nuanced responses about ${analysisResponse.name}
+2. Reference specific metrics when relevant to the discussion
+3. Draw from the timeline_of_influence, major_contributions, and counter_narratives when appropriate
+4. Cite sources when making specific claims
+5. Be prepared to discuss both achievements and controversies
+6. Consider the geographic and temporal context of their influence
+
+Remember to maintain a balanced perspective, acknowledging both the figure's impacts and limitations.`;
+}
+
 export async function POST (request: Request) {
   const {
     id,
     messages,
-    modelId
-  }: { id: string; messages: Array<Message>; modelId: string } = await request.json();
+    modelId,
+    analysisResponse
+  }: { id: string; messages: Array<Message>; modelId: string, analysisResponse: any } = await request.json();
 
   const session = await auth();
 
@@ -80,11 +109,13 @@ export async function POST (request: Request) {
   const chat = await getChatById({ id });
 
   if (!chat) {
-    const title = await generateTitleFromUserMessage({ message: userMessage });
+    // const title = await generateTitleFromUserMessage({ message: userMessage });
+    const title = analysisResponse.name;
     await saveChat({
       id,
       userId: session.user.id,
-      title
+      title,
+      analysisResponse
     });
   }
 
@@ -110,7 +141,7 @@ export async function POST (request: Request) {
 
       const result = streamText({
         model                   : customModel(model.apiIdentifier),
-        system                  : systemPrompt,
+        system                  : analysisResponse ? createAnalysisSystemPrompt(analysisResponse) : systemPrompt,
         messages                : coreMessages,
         maxSteps                : 5,
         experimental_activeTools: allTools,

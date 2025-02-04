@@ -6,24 +6,19 @@ import { Timeline } from './timeline';
 import { Contributions } from './contributions';
 import { Sentiment } from './sentiment';
 import { PersonalityTraits } from './personality-traits';
-import { useEffect } from 'react';
 import { WorldMap } from './world-map';
 
 interface AnalysisPanelProps {
-  data: any; // We'll type this properly later
+  data: any;
 }
 
 export function AnalysisPanel ({ data }: AnalysisPanelProps) {
-  useEffect(() => {
-    console.log({ data });
-  }, [data]);
-
   if (!data) {
     return null;
   }
 
   return (
-    <div className="h-full space-y-6 overflow-y-auto p-4">
+    <div className="mt-8 h-full space-y-6 overflow-y-auto p-4">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold">{data.name}</h2>
         <p className="text-sm text-muted-foreground">{data.summary}</p>

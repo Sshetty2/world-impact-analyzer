@@ -40,6 +40,7 @@ export default async function Page (props: { params: Promise<{ id: string }> }) 
     <>
       <Chat
         id={chat.id}
+        analysisResponse={chat.analysisResponse}
         initialMessages={convertToUIMessages(messagesFromDb)}
         selectedModelId={selectedModelId}
         selectedVisibilityType={chat.visibility}

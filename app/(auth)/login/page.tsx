@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 
 import { AuthForm } from '@/components/auth-form';
 import { SubmitButton } from '@/components/submit-button';
+import { Button } from '@/components/ui/button';
 
 import { login, type LoginActionState } from '../actions';
 
@@ -37,6 +38,13 @@ export default function Page () {
     formAction(formData);
   };
 
+  const handleTestAccount = () => {
+    const formData = new FormData();
+    formData.set('email', 'test123@test.com');
+    formData.set('password', 'password');
+    handleSubmit(formData);
+  };
+
   return (
     <div className="flex h-dvh w-screen items-start justify-center bg-background pt-12 md:items-center md:pt-0">
       <div className="flex w-full max-w-md flex-col gap-12 overflow-hidden rounded-2xl">
@@ -50,6 +58,14 @@ export default function Page () {
           action={handleSubmit}
           defaultEmail={email}>
           <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
+          <Button
+            onClick={handleTestAccount}
+            type="button"
+            variant="outline"
+            className="mt-2 w-full"
+          >
+            Use Test Account
+          </Button>
           <p className="mt-4 text-center text-sm text-gray-600 dark:text-zinc-400">
             {'Don\'t have an account? '}
             <Link
