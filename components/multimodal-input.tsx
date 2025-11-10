@@ -201,15 +201,23 @@ function PureMultimodalInput ({
     setIsAnalyzing(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_LAMBDA_API_GATEWAY_URL}/world-impact-analysis`, {
+      const response = await fetch('/api/analyze', {
         method : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ personName: input })
+        body   : JSON.stringify({
+          personName: input,
+          chatId
+        })
       });
 
       if (!response.ok) {
         const error = await response.json();
-        toast.error(error.error || 'Analysis failed');
+
+        if (response.status === 401) {
+          toast.error('Please sign in to analyze historical figures');
+        } else {
+          toast.error(error.error || 'Analysis failed');
+        }
 
         return;
       }
@@ -223,10 +231,8 @@ function PureMultimodalInput ({
         if (analysisResponse.result) {
           window.history.replaceState({}, '', `/chat/${chatId}`);
 
-          handleSubmit(undefined, {
-            experimental_attachments: attachments,
-            body                    : { analysisResponse: analysisResponse.result }
-          });
+          // Chat record already created in /api/analyze, no need to send analyzedPersonName
+          handleSubmit(undefined, { experimental_attachments: attachments });
 
           setAttachments([]);
           setLocalStorageInput('');

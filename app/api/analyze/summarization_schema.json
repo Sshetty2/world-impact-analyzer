@@ -1,60 +1,495 @@
 {
     "type": "object",
+    "title": "world-impact-index",
+    "description": "A comprehensive analysis of a historical figure's impact on the world",
     "properties": {
         "name": {
             "type": "string",
-            "description": "The name of the historical figure"
+            "description": "Full name of the historical figure"
         },
-        "cultural_influence": {
-            "type": "string",
-            "description": "A generalized but concise description of how the figure impacted society and the lasting effects of their works"
+        "worldly_impact_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Overall score (0-100) measuring the person's total impact on human history and civilization"
         },
-        "major_contributions": {
-            "type": "string",
-            "description": "A generalized but concise description of the figure's most important contributions"
+        "reach_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Score (0-100) indicating the global reach and spread of the person's influence"
         },
-        "controversies": {
-            "type": "string",
-            "description": "A generalized but concise description of controversies surrounding the figure, if any"
+        "controversy_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Score (0-100) indicating the level of historical and contemporary controversy"
         },
-        "interpersonal_influence": {
-            "type": "string",
-            "description": "A description of the figure's influence on or interactions with their contemporaries and collaborators"
+        "longevity_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Score (0-100) indicating how well their ideas/contributions have stood or will stand the test of time"
         },
-        "geographical_influence": {
-            "type": "string",
-            "description": "A description of the regions or countries where the figure's work had the greatest impact"
+        "innovation_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Score (0-100) measuring how revolutionary or paradigm-shifting their contributions were for their time"
+        },
+        "influence_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Score (0-100) indicating the overall breadth and depth of the person's influence across multiple domains"
+        },
+        "personality_characteristics": {
+            "type": "object",
+            "description": "Personality traits of the historical figure",
+            "properties": {
+                "visionary": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Score (0-100) reflecting the person's forward-thinking ability and long-term vision"
+                },
+                "resilience": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Score (0-100) reflecting the person's ability to overcome adversity"
+                },
+                "charisma": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Score (0-100) reflecting the person's ability to inspire and attract followers"
+                },
+                "empathy": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Score (0-100) reflecting the person's understanding of and care for others' perspectives"
+                },
+                "adaptability": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Score (0-100) reflecting the person's ability to adjust to changing circumstances"
+                },
+                "controversial_nature": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Score (0-100) reflecting how polarizing the person was"
+                }
+            },
+            "required": [
+                "visionary",
+                "resilience",
+                "charisma",
+                "empathy",
+                "adaptability",
+                "controversial_nature"
+            ]
+        },
+        "fields_of_impact": {
+            "type": "object",
+            "description": "Key areas of influence with weighted percentages showing relative impact in each field",
+            "properties": {
+                "science": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Impact score in scientific advancement (0-100)"
+                },
+                "philosophy": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Impact score in philosophical thought (0-100)"
+                },
+                "politics": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Impact score in political theory or governance (0-100)"
+                },
+                "arts": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Impact score in arts and culture (0-100)"
+                },
+                "technology": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Impact score in technological advancement (0-100)"
+                },
+                "social": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Impact score in social movements or change (0-100)"
+                },
+                "religion": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Impact score in religious or spiritual matters (0-100)"
+                },
+                "economics": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "Impact score in economic theory or systems (0-100)"
+                }
+            }
+        },
+        "sentiment_index": {
+            "type": "object",
+            "description": "Analysis of historical and contemporary sentiment towards the person",
+            "properties": {
+                "positive": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Proportion of positive sentiment (0-1)"
+                },
+                "mixed": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Proportion of mixed/neutral sentiment (0-1)"
+                },
+                "negative": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Proportion of negative sentiment (0-1)"
+                }
+            },
+            "required": [
+                "positive",
+                "mixed",
+                "negative"
+            ]
+        },
+        "citations_count": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "description": "Approximate number of academic citations or historical references to the person"
         },
         "timeline_of_influence": {
             "type": "array",
-            "description": "A detailed description of the figure's timeline of influence, including major events and dates of their contributions",
+            "description": "Chronological list of key events and contributions in the person's life and legacy",
             "items": {
                 "type": "object",
                 "properties": {
                     "year": {
                         "type": "string",
-                        "description": "The year or time period of the event"
+                        "description": "Year or date of the event"
                     },
                     "event": {
                         "type": "string",
-                        "description": "A description of the significant event or contribution"
+                        "description": "Description of the significant event or contribution"
                     }
+                },
+                "required": [
+                    "year",
+                    "event"
+                ]
+            }
+        },
+        "geographic_areas_of_influence": {
+            "type": "object",
+            "description": "Regions where the person had significant impact, with scores indicating strength of influence",
+            "properties": {
+                "europe": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Influence score in Europe (0-1)"
+                },
+                "north_america": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Influence score in North America (0-1)"
+                },
+                "south_america": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Influence score in South America (0-1)"
+                },
+                "asia": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Influence score in Asia (0-1)"
+                },
+                "africa": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Influence score in Africa (0-1)"
+                },
+                "oceania": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Influence score in Oceania (0-1)"
                 }
             }
         },
-        "legacy_and_enduring_relevance": {
+        "summary": {
             "type": "string",
-            "description": "A summary of the figure's enduring legacy and relevance in the modern day, including how their ideas, works, or controversies are perceived now"
+            "description": "Concise two-paragraph summary of the person's life, work, and historical significance"
+        },
+        "major_contributions": {
+            "type": "array",
+            "description": "List of the person's most significant works, ideas, or contributions",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Name or title of the contribution"
+                    },
+                    "summary": {
+                        "type": "string",
+                        "description": "Brief explanation of the contribution and its significance"
+                    },
+                    "date": {
+                        "type": "string",
+                        "description": "The date of the contribution"
+                    }
+                },
+                "required": [
+                    "title",
+                    "summary"
+                ]
+            }
+        },
+        "notable_contemporaries": {
+            "type": "array",
+            "description": "Key people who influenced or were influenced by the person",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the contemporary figure"
+                    },
+                    "relationship": {
+                        "type": "string",
+                        "description": "Description of their connection or influence relationship"
+                    }
+                },
+                "required": [
+                    "name",
+                    "relationship"
+                ]
+            }
+        },
+        "counter_narratives": {
+            "type": "array",
+            "description": "Alternative or opposing viewpoints about the person's impact and legacy",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "perspective": {
+                        "type": "string"
+                    },
+                    "argument": {
+                        "type": "string"
+                    },
+                    "significance": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                    },
+                    "relevant_sources": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "url": {
+                                    "type": "string"
+                                },
+                                "context": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "url",
+                                "context"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "perspective",
+                    "argument",
+                    "significance",
+                    "relevant_sources"
+                ]
+            }
+        },
+        "additional_metrics": {
+            "type": "array",
+            "description": "Creative additional metrics that provide unique insights about the person's impact. These could include innovation indices, cultural resonance scores, long-term influence multipliers, or other novel measurements.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Name of the metric (e.g., 'Innovation Disruption Index', 'Cultural Longevity Score')"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "index",
+                            "score",
+                            "ratio",
+                            "multiplier"
+                        ],
+                        "description": "The type of measurement being used"
+                    },
+                    "value": {
+                        "type": "number",
+                        "description": "The calculated value of the metric; index (0-1), score (0-100)"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Explanation of what the metric measures and how it's calculated"
+                    }
+                },
+                "required": [
+                    "title",
+                    "type",
+                    "value",
+                    "description"
+                ]
+            }
+        },
+        "additional_reading": {
+            "type": "array",
+            "description": "Curated list of recommended materials for deeper understanding of the subject's impact and legacy",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Title of the recommended material"
+                    },
+                    "author": {
+                        "type": "string",
+                        "description": "Author or creator of the material"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "book",
+                            "article",
+                            "paper",
+                            "video",
+                            "podcast",
+                            "website",
+                            "other"
+                        ],
+                        "description": "Type of material"
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "URL to access the material, if available"
+                    },
+                    "year": {
+                        "type": "string",
+                        "description": "Year of publication or release"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Brief explanation of why this material is recommended and what readers can learn from it"
+                    },
+                    "difficulty_level": {
+                        "type": "string",
+                        "enum": [
+                            "introductory",
+                            "intermediate",
+                            "advanced",
+                            "scholarly"
+                        ],
+                        "description": "Indicates the material's complexity and target audience"
+                    }
+                },
+                "required": [
+                    "title",
+                    "description",
+                    "type",
+                    "difficulty_level"
+                ]
+            }
+        },
+        "sources": {
+            "type": "array",
+            "description": "Primary source links and references used for this analysis",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Title of the source"
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "URL to the source material"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "academic",
+                            "primary_source",
+                            "biography",
+                            "analysis",
+                            "media",
+                            "other"
+                        ],
+                        "description": "Type of source material"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Brief description of the source's relevance"
+                    }
+                },
+                "required": [
+                    "title",
+                    "url",
+                    "type"
+                ]
+            }
         }
     },
     "required": [
         "name",
-        "cultural_influence",
-        "major_contributions",
-        "controversies",
+        "worldly_impact_score",
+        "reach_score",
+        "controversy_score",
+        "longevity_score",
+        "innovation_score",
+        "influence_score",
+        "personality_characteristics",
+        "fields_of_impact",
+        "sentiment_index",
         "timeline_of_influence",
-        "interpersonal_influence",
-        "geographical_influence",
-        "legacy_and_enduring_relevance"
+        "geographic_areas_of_influence",
+        "summary",
+        "major_contributions",
+        "notable_contemporaries",
+        "additional_reading"
     ]
 }

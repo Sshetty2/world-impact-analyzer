@@ -55,20 +55,21 @@ export async function saveChat ({
   id,
   userId,
   title,
-  analysisResponse
+  analyzedPersonName
 }: {
   id: string;
   userId: string;
   title: string;
-  analysisResponse: any;
+  analyzedPersonName: string;
 }) {
   try {
+   
     return await db.insert(chat).values({
       id,
-      createdAt       : new Date(),
+      createdAt: new Date(),
       userId,
       title,
-      analysisResponse: JSON.stringify(analysisResponse)
+      analyzedPersonName
     });
   } catch (error) {
     console.error('Failed to save chat in database');
@@ -103,7 +104,21 @@ export async function getChatsByUserId ({ id }: { id: string }) {
 
 export async function getChatById ({ id }: { id: string }) {
   try {
-    const [selectedChat] = await db.select().from(chat)
+    const [selectedChat] = await db
+      .select({
+        id                : chat.id,
+        createdAt         : chat.createdAt,
+        title             : chat.title,
+        userId            : chat.userId,
+        visibility        : chat.visibility,
+        analyzedPersonName: chat.analyzedPersonName,
+        analysis          : historicalFigureAnalysis.analysis
+      })
+      .from(chat)
+      .leftJoin(
+        historicalFigureAnalysis,
+        eq(chat.analyzedPersonName, historicalFigureAnalysis.name)
+      )
       .where(eq(chat.id, id));
 
     return selectedChat;

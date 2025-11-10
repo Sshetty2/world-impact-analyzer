@@ -20,7 +20,6 @@ import {
   deleteChatById,
   getChatById,
   getDocumentById,
-  saveChat,
   saveDocument,
   saveMessages,
   saveSuggestions
@@ -31,8 +30,6 @@ import {
   getMostRecentUserMessage,
   sanitizeResponseMessages
 } from '@/lib/utils';
-
-// import { generateTitleFromUserMessage } from '../../actions';
 
 export const maxDuration = 60;
 
@@ -83,9 +80,8 @@ export async function POST (request: Request) {
   const {
     id,
     messages,
-    modelId,
-    analysisResponse
-  }: { id: string; messages: Array<Message>; modelId: string, analysisResponse: any } = await request.json();
+    modelId
+  }: { id: string; messages: Array<Message>; modelId: string } = await request.json();
 
   const session = await auth();
 
@@ -106,17 +102,13 @@ export async function POST (request: Request) {
     return new Response('No user message found', { status: 400 });
   }
 
-  const chat = await getChatById({ id });
+  const chatData = await getChatById({ id });
 
-  if (!chat) {
-    // const title = await generateTitleFromUserMessage({ message: userMessage });
-    const title = analysisResponse.name;
-    await saveChat({
-      id,
-      userId: session.user.id,
-      title,
-      analysisResponse
-    });
+  // eslint-disable-next-line no-console
+  console.log('chatData', chatData);
+
+  if (!chatData) {
+    return new Response('Chat not found. Analysis must be completed first.', { status: 400 });
   }
 
   const userMessageId = generateUUID();
@@ -139,9 +131,11 @@ export async function POST (request: Request) {
         content: userMessageId
       });
 
+      const analysisData = chatData?.analysis ? (typeof chatData.analysis === 'string' ? JSON.parse(chatData.analysis) : chatData.analysis) : null;
+
       const result = streamText({
         model                   : customModel(model.apiIdentifier),
-        system                  : analysisResponse ? createAnalysisSystemPrompt(analysisResponse) : systemPrompt,
+        system                  : analysisData ? createAnalysisSystemPrompt(analysisData) : systemPrompt,
         messages                : coreMessages,
         maxSteps                : 5,
         experimental_activeTools: allTools,

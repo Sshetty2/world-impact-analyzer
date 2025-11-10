@@ -21,6 +21,15 @@ export const user = pgTable('User', {
 
 export type User = InferSelectModel<typeof user>;
 
+export const historicalFigureAnalysis = pgTable('historical_figure_analysis', {
+  name     : text('name').primaryKey(),
+  analysis : json('analysis').notNull(),
+  createdAt: timestamp('created_at').notNull()
+    .defaultNow()
+});
+
+export type HistoricalFigureAnalysis = InferSelectModel<typeof historicalFigureAnalysis>;
+
 export const chat = pgTable('Chat', {
   id: uuid('id').primaryKey()
     .notNull()
@@ -33,7 +42,9 @@ export const chat = pgTable('Chat', {
   visibility: varchar('visibility', { enum: ['public', 'private'] })
     .notNull()
     .default('private'),
-  analysisResponse: json('analysisResponse')
+  analyzedPersonName: text('analyzedPersonName')
+    .notNull()
+    .references(() => historicalFigureAnalysis.name)
 });
 
 export type Chat = InferSelectModel<typeof chat>;
@@ -115,12 +126,3 @@ export const suggestion = pgTable(
 );
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
-
-export const historicalFigureAnalysis = pgTable('historical_figure_analysis', {
-  name     : text('name').primaryKey(),
-  analysis : json('analysis').notNull(),
-  createdAt: timestamp('created_at').notNull()
-    .defaultNow()
-});
-
-export type HistoricalFigureAnalysis = InferSelectModel<typeof historicalFigureAnalysis>;
