@@ -65,10 +65,10 @@ export async function saveChat ({
   try {
     return await db.insert(chat).values({
       id,
-      createdAt         : new Date(),
+      createdAt: new Date(),
       userId,
       title,
-      analyzedPersonName: analyzedPersonName.toLowerCase()
+      analyzedPersonName
     });
   } catch (error) {
     console.error('Failed to save chat in database');
@@ -377,7 +377,7 @@ export async function saveAnalysisToCache ({
     return await db
       .insert(historicalFigureAnalysis)
       .values({
-        name     : name.toLowerCase(),
+        name,
         analysis,
         createdAt: new Date()
       })

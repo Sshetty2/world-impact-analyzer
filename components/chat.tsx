@@ -242,8 +242,6 @@ export function Chat ({
         })
       });
 
-      console.log('RESPONSE', response);
-
       if (!response.ok) {
         const error = await response.json();
 

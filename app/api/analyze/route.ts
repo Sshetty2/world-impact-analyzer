@@ -228,9 +228,21 @@ export async function POST (request: Request) {
             }
           });
 
+          if (!result.name) {
+            console.log(`Error found in result: ${JSON.stringify(result)}`);
+            dataStream.writeData({
+              type   : 'error',
+              content: 'No name found in the analysis'
+            });
+
+            return;
+          }
+
+          const name = result.name.toLowerCase();
+
           // Use the LLM's returned name as the cache key, not the user's input
           await saveAnalysisToCache({
-            name    : result.name,
+            name,
             analysis: result
           });
 
@@ -239,7 +251,7 @@ export async function POST (request: Request) {
             id                : chatId,
             userId            : session.user?.id || '',
             title             : result.name,
-            analyzedPersonName: result.name
+            analyzedPersonName: name
           });
 
           // Send final result
