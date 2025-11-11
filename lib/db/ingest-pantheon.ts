@@ -14,6 +14,7 @@ const limit = limitIndex !== -1 ? parseInt(args[limitIndex + 1], 10) : null;
 
 // Database connection
 const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
 if (!connectionString) {
   throw new Error('DATABASE_URL or POSTGRES_URL must be set');
 }
@@ -22,44 +23,79 @@ const client = postgres(connectionString);
 const db = drizzle(client);
 
 // Function to calculate era from birthyear
-function calculateEra(birthyear: number | null): string | null {
-  if (birthyear === null || birthyear === undefined) return null;
+function calculateEra (birthyear: number | null): string | null {
+  if (birthyear === null || birthyear === undefined) {
+    return null;
+  }
 
-  if (birthyear < -500) return 'PREHISTORIC';
-  if (birthyear < 0) return 'ANCIENT';
-  if (birthyear < 500) return 'CLASSICAL';
-  if (birthyear < 1500) return 'MEDIEVAL';
-  if (birthyear < 1700) return 'RENAISSANCE';
-  if (birthyear < 1800) return 'AGE OF ENLIGHTENMENT';
-  if (birthyear < 1900) return 'INDUSTRIAL AGE';
-  if (birthyear < 2000) return 'MODERN';
+  if (birthyear < -500) {
+    return 'PREHISTORIC';
+  }
+
+  if (birthyear < 0) {
+    return 'ANCIENT';
+  }
+
+  if (birthyear < 500) {
+    return 'CLASSICAL';
+  }
+
+  if (birthyear < 1500) {
+    return 'MEDIEVAL';
+  }
+
+  if (birthyear < 1700) {
+    return 'RENAISSANCE';
+  }
+
+  if (birthyear < 1800) {
+    return 'AGE OF ENLIGHTENMENT';
+  }
+
+  if (birthyear < 1900) {
+    return 'INDUSTRIAL AGE';
+  }
+
+  if (birthyear < 2000) {
+    return 'MODERN';
+  }
+
   return 'CONTEMPORARY';
 }
 
 // Function to parse numeric values
-function parseNumeric(value: string): string | null {
-  if (!value || value === '') return null;
+function parseNumeric (value: string): string | null {
+  if (!value || value === '') {
+    return null;
+  }
+
   return value;
 }
 
 // Function to parse integer values
-function parseInteger(value: string): number | null {
-  if (!value || value === '') return null;
+function parseInteger (value: string): number | null {
+  if (!value || value === '') {
+    return null;
+  }
   const parsed = parseInt(value, 10);
+
   return isNaN(parsed) ? null : parsed;
 }
 
 // Function to parse boolean values
-function parseBoolean(value: string): boolean {
+function parseBoolean (value: string): boolean {
   return value === 'TRUE' || value === 'true' || value === '1';
 }
 
 // Function to get country code from country name (defensive wrapper)
-function getCountryCodeSafe(countryName: string | null): string | null {
-  if (!countryName) return null;
+function getCountryCodeSafe (countryName: string | null): string | null {
+  if (!countryName) {
+    return null;
+  }
 
   try {
     const code = getCountryCode(countryName);
+
     return code || null;
   } catch (error) {
     // If getCountryCode throws or fails, return null
@@ -68,18 +104,21 @@ function getCountryCodeSafe(countryName: string | null): string | null {
 }
 
 // Function to get continent from country code (defensive)
-function getContinent(countryCode: string | null): string | null {
-  if (!countryCode) return null;
+function getContinent (countryCode: string | null): string | null {
+  if (!countryCode) {
+    return null;
+  }
 
   try {
     const countryData = countries[countryCode as keyof typeof countries];
+
     return countryData?.continent || null;
   } catch (error) {
     return null;
   }
 }
 
-async function ingestData() {
+async function ingestData () {
   console.log('🚀 Starting Pantheon data ingestion...');
 
   // Load occupation-domain mapping
@@ -95,13 +134,14 @@ async function ingestData() {
 
   // Parse CSV
   const records = parse(csvContent, {
-    columns: true,
+    columns         : true,
     skip_empty_lines: true,
-    trim: true,
+    trim            : true
   }) as Array<Record<string, string>>;
 
   const totalRecords = limit ? Math.min(limit, records.length) : records.length;
   console.log(`✓ Loaded CSV with ${records.length} records`);
+
   if (limit) {
     console.log(`⚠️  Limiting ingestion to first ${totalRecords} records`);
   }
@@ -135,44 +175,44 @@ async function ingestData() {
         }
 
         transformedBatch.push({
-          id: parseInteger(record.id)!,
-          wdId: record.wd_id || null,
-          wpId: parseInteger(record.wp_id),
-          slug: record.slug,
-          name: record.name,
-          occupation: record.occupation || '',
+          id                    : parseInteger(record.id)!,
+          wdId                  : record.wd_id || null,
+          wpId                  : parseInteger(record.wp_id),
+          slug                  : record.slug,
+          name                  : record.name,
+          occupation            : record.occupation || '',
           domain,
           era,
-          probRatio: parseNumeric(record.prob_ratio),
-          gender: record.gender || null,
-          twitter: record.twitter || null,
-          alive: parseBoolean(record.alive),
-          l: parseInteger(record.l),
-          hpiRaw: parseNumeric(record.hpi_raw),
-          birthplaceName: record.bplace_name || null,
-          birthplaceLat: parseNumeric(record.bplace_lat),
-          birthplaceLon: parseNumeric(record.bplace_lon),
-          birthplaceGeonameid: parseInteger(record.bplace_geonameid),
-          birthplaceCountry: record.bplace_country || null,
+          probRatio             : parseNumeric(record.prob_ratio),
+          gender                : record.gender || null,
+          twitter               : record.twitter || null,
+          alive                 : parseBoolean(record.alive),
+          l                     : parseInteger(record.l),
+          hpiRaw                : parseNumeric(record.hpi_raw),
+          birthplaceName        : record.bplace_name || null,
+          birthplaceLat         : parseNumeric(record.bplace_lat),
+          birthplaceLon         : parseNumeric(record.bplace_lon),
+          birthplaceGeonameid   : parseInteger(record.bplace_geonameid),
+          birthplaceCountry     : record.bplace_country || null,
           birthplaceCountryCode,
           birthplaceContinent,
-          birthdate: record.birthdate || null,
+          birthdate             : record.birthdate || null,
           birthyear,
-          deathplaceName: record.dplace_name || null,
-          deathplaceLat: parseNumeric(record.dplace_lat),
-          deathplaceLon: parseNumeric(record.dplace_lon),
-          deathplaceGeonameid: parseInteger(record.dplace_geonameid),
-          deathplaceCountry: record.dplace_country || null,
-          deathdate: record.deathdate || null,
-          deathyear: parseInteger(record.deathyear),
-          birthplaceGeacronName: record.bplace_geacron_name || null,
-          deathplaceGeacronName: record.dplace_geacron_name || null,
-          isGroup: parseBoolean(record.is_group),
-          lUnderscore: parseInteger(record.l_),
-          age: parseInteger(record.age),
-          nonEnPageViews: parseInteger(record.non_en_page_views),
+          deathplaceName        : record.dplace_name || null,
+          deathplaceLat         : parseNumeric(record.dplace_lat),
+          deathplaceLon         : parseNumeric(record.dplace_lon),
+          deathplaceGeonameid   : parseInteger(record.dplace_geonameid),
+          deathplaceCountry     : record.dplace_country || null,
+          deathdate             : record.deathdate || null,
+          deathyear             : parseInteger(record.deathyear),
+          birthplaceGeacronName : record.bplace_geacron_name || null,
+          deathplaceGeacronName : record.dplace_geacron_name || null,
+          isGroup               : parseBoolean(record.is_group),
+          lUnderscore           : parseInteger(record.l_),
+          age                   : parseInteger(record.age),
+          nonEnPageViews        : parseInteger(record.non_en_page_views),
           coefficientOfVariation: parseNumeric(record.coefficient_of_variation),
-          hpi: parseNumeric(record.hpi),
+          hpi                   : parseNumeric(record.hpi)
         });
       } catch (error) {
         console.error(`❌ Error transforming record: ${record.name}`, error);
@@ -185,9 +225,9 @@ async function ingestData() {
       try {
         await db.insert(pantheonPerson).values(transformedBatch);
         processed += transformedBatch.length;
-        console.log(`✓ Inserted batch ${Math.floor(i / batchSize) + 1}: ${processed}/${totalRecords} records (${Math.round((processed / totalRecords) * 100)}%)`);
+        console.log(`✓ Inserted batch ${Math.floor(i / batchSize) + 1}: ${processed}/${totalRecords} records (${Math.round(processed / totalRecords * 100)}%)`);
       } catch (error) {
-        console.error(`❌ Error inserting batch:`, error);
+        console.error('❌ Error inserting batch:', error);
         errors += transformedBatch.length;
       }
     }
@@ -202,7 +242,7 @@ async function ingestData() {
 }
 
 // Run the ingestion
-ingestData().catch((error) => {
+ingestData().catch(error => {
   console.error('💥 Fatal error during ingestion:', error);
   process.exit(1);
 });

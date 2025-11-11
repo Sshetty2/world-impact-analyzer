@@ -7,6 +7,7 @@ import * as path from 'path';
 
 // Database connection
 const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
 if (!connectionString) {
   throw new Error('DATABASE_URL or POSTGRES_URL must be set');
 }
@@ -14,7 +15,7 @@ if (!connectionString) {
 const client = postgres(connectionString);
 const db = drizzle(client);
 
-async function createTable() {
+async function createTable () {
   console.log('🔨 Creating pantheon_person table...');
 
   try {
@@ -27,6 +28,7 @@ async function createTable() {
 
     for (const statement of statements) {
       const trimmed = statement.trim();
+
       if (trimmed) {
         console.log(`Executing: ${trimmed.substring(0, 50)}...`);
         await db.execute(sql.raw(trimmed));
@@ -42,7 +44,7 @@ async function createTable() {
   }
 }
 
-createTable().catch((error) => {
+createTable().catch(error => {
   console.error('💥 Fatal error:', error);
   process.exit(1);
 });

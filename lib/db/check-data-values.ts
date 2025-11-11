@@ -3,7 +3,7 @@ import { db } from './index';
 import { pantheonPerson } from './schema';
 import { sql, isNotNull } from 'drizzle-orm';
 
-async function checkDataValues() {
+async function checkDataValues () {
   console.log('🔍 Checking actual data values in database...\n');
 
   // Check continents
@@ -11,14 +11,14 @@ async function checkDataValues() {
   const continents = await db
     .select({
       continent: pantheonPerson.birthplaceContinent,
-      count: sql<number>`count(*)::int`,
+      count    : sql<number>`count(*)::int`
     })
     .from(pantheonPerson)
     .where(isNotNull(pantheonPerson.birthplaceContinent))
     .groupBy(pantheonPerson.birthplaceContinent)
     .orderBy(sql`count(*) desc`);
 
-  continents.forEach((c) => {
+  continents.forEach(c => {
     console.log(`  ${c.continent}: ${c.count.toLocaleString()} people`);
   });
 
@@ -27,7 +27,7 @@ async function checkDataValues() {
   const countries = await db
     .select({
       country: pantheonPerson.birthplaceCountry,
-      count: sql<number>`count(*)::int`,
+      count  : sql<number>`count(*)::int`
     })
     .from(pantheonPerson)
     .where(isNotNull(pantheonPerson.birthplaceCountry))
@@ -35,7 +35,7 @@ async function checkDataValues() {
     .orderBy(sql`count(*) desc`)
     .limit(20);
 
-  countries.forEach((c) => {
+  countries.forEach(c => {
     console.log(`  ${c.country}: ${c.count.toLocaleString()} people`);
   });
 
@@ -43,16 +43,16 @@ async function checkDataValues() {
   console.log('\n📋 Sample records with continent data:');
   const samples = await db
     .select({
-      name: pantheonPerson.name,
-      country: pantheonPerson.birthplaceCountry,
-      continent: pantheonPerson.birthplaceContinent,
-      countryCode: pantheonPerson.birthplaceCountryCode,
+      name       : pantheonPerson.name,
+      country    : pantheonPerson.birthplaceCountry,
+      continent  : pantheonPerson.birthplaceContinent,
+      countryCode: pantheonPerson.birthplaceCountryCode
     })
     .from(pantheonPerson)
     .where(isNotNull(pantheonPerson.birthplaceContinent))
     .limit(10);
 
-  samples.forEach((s) => {
+  samples.forEach(s => {
     console.log(
       `  ${s.name}: ${s.country} (${s.countryCode}) - Continent: ${s.continent}`
     );

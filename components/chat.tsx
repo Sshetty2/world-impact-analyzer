@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /* eslint-disable max-depth */
 /* eslint-disable max-statements */
 'use client';
@@ -237,7 +238,7 @@ export function Chat ({
         body   : JSON.stringify({
           personName,
           chatId: id,
-          ...(options?.slug && { slug: options.slug })
+          ...options?.slug && { slug: options.slug }
         })
       });
 
@@ -260,6 +261,7 @@ export function Chat ({
 
       if (contentType?.includes('application/json')) {
         // Cached result - no streaming
+        // eslint-disable-next-line no-shadow
         const analysisResponse = await response.json();
 
         if (analysisResponse.status === 'existing') {
@@ -283,6 +285,7 @@ export function Chat ({
         let buffer = '';
 
         try {
+          // eslint-disable-next-line no-constant-condition
           while (true) {
             const { done, value } = await reader.read();
 
@@ -322,8 +325,10 @@ export function Chat ({
                       return;
                     }
                   } else if (data.type === 'complete') {
+                    // eslint-disable-next-line no-shadow
                     const analysisResponse = data.content as Analysis;
 
+                    // eslint-disable-next-line no-eq-null
                     if (analysisResponse == null) {
                       toast.error('Analysis response is null');
 
@@ -365,9 +370,7 @@ export function Chat ({
   const handleConfirmAnalysis = useCallback(() => {
     if (selectedPersonForAnalysis) {
       setShowAnalysisModal(false);
-      handleAnalysisSubmit(selectedPersonForAnalysis.name, {
-        slug: selectedPersonForAnalysis.slug
-      });
+      handleAnalysisSubmit(selectedPersonForAnalysis.name, { slug: selectedPersonForAnalysis.slug });
       setSelectedPersonForAnalysis(null);
     }
   }, [selectedPersonForAnalysis, handleAnalysisSubmit]);

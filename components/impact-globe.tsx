@@ -9,17 +9,20 @@ const Globe = dynamic(() => import('react-globe.gl'), { ssr: false });
 
 // Continent code to display name mapping
 const CONTINENT_NAMES: Record<string, string> = {
-  'AF': 'Africa',
-  'AN': 'Antarctica',
-  'AS': 'Asia',
-  'EU': 'Europe',
-  'NA': 'North America',
-  'OC': 'Oceania',
-  'SA': 'South America'
+  AF: 'Africa',
+  AN: 'Antarctica',
+  AS: 'Asia',
+  EU: 'Europe',
+  NA: 'North America',
+  OC: 'Oceania',
+  SA: 'South America'
 };
 
-function getContinentName(code: string | undefined): string {
-  if (!code) return '';
+function getContinentName (code: string | undefined): string {
+  if (!code) {
+    return '';
+  }
+
   return CONTINENT_NAMES[code.toUpperCase()] || code;
 }
 
@@ -46,7 +49,7 @@ type Props = {
   onDoubleClick?: (p: PersonPin) => void;
 };
 
-export default function ImpactGlobe({
+export default function ImpactGlobe ({
   people,
   autoRotateSpeed = 0.5,
   isAnalyzing = false,
@@ -55,18 +58,26 @@ export default function ImpactGlobe({
 }: Props) {
   const globeEl = useRef<any>();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [dimensions, setDimensions] = useState({
+    width : 0,
+    height: 0
+  });
   const [hoveredPoint, setHoveredPoint] = useState<PersonPin | null>(null);
   const lastClickRef = useRef<{ time: number; personId: string } | null>(null);
 
   // Measure container dimensions
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {
+      return;
+    }
 
     const updateDimensions = () => {
       if (containerRef.current) {
         const { width, height } = containerRef.current.getBoundingClientRect();
-        setDimensions({ width, height });
+        setDimensions({
+          width,
+          height
+        });
       }
     };
 
@@ -96,7 +107,9 @@ export default function ImpactGlobe({
   }, []);
 
   return (
-    <div ref={containerRef} className="relative w-full h-full flex items-center justify-center">
+    <div
+      ref={containerRef}
+      className="relative flex size-full items-center justify-center">
       {dimensions.width > 0 && dimensions.height > 0 && (
         <>
           <Globe
@@ -139,14 +152,15 @@ export default function ImpactGlobe({
 
               // Check for double-click (within 300ms on same person)
               if (
-                lastClick &&
-                lastClick.personId === person.id &&
-                now - lastClick.time < 300
+                lastClick
+                && lastClick.personId === person.id
+                && now - lastClick.time < 300
               ) {
                 // Double-click detected
                 if (onDoubleClick) {
                   onDoubleClick(person);
                 }
+
                 // Reset to prevent triple-click
                 lastClickRef.current = null;
               } else {
@@ -154,12 +168,17 @@ export default function ImpactGlobe({
                 if (onSelect) {
                   onSelect(person);
                 }
+
                 // Store this click for double-click detection
-                lastClickRef.current = { time: now, personId: person.id };
+                lastClickRef.current = {
+                  time    : now,
+                  personId: person.id
+                };
               }
             }}
             onPointHover={(point: any) => {
               setHoveredPoint(point as PersonPin | null);
+
               if (globeEl.current) {
                 globeEl.current.controls().autoRotate = !point && autoRotateSpeed > 0;
               }
@@ -175,28 +194,28 @@ export default function ImpactGlobe({
 
           {/* Tooltip overlay - shown when hovering */}
           {hoveredPoint && (
-            <div className="absolute top-4 left-4 bg-black/95 backdrop-blur-md rounded-xl px-6 py-4 border border-zinc-700 shadow-2xl pointer-events-none z-50 max-w-sm">
-              <div className="text-lg font-bold text-white mb-2">{hoveredPoint.name}</div>
+            <div className="pointer-events-none absolute left-4 top-4 z-50 max-w-sm rounded-xl border border-zinc-700 bg-black/95 px-6 py-4 shadow-2xl backdrop-blur-md">
+              <div className="mb-2 text-lg font-bold text-white">{hoveredPoint.name}</div>
 
               {hoveredPoint.occupation && (
-                <div className="text-sm text-amber-400 mb-1.5 capitalize font-medium">
+                <div className="mb-1.5 text-sm font-medium capitalize text-amber-400">
                   {hoveredPoint.occupation.toLowerCase()}
                 </div>
               )}
 
               {hoveredPoint.era && (
-                <div className="text-sm text-blue-400 mb-2 capitalize font-medium">
+                <div className="mb-2 text-sm font-medium capitalize text-blue-400">
                   {hoveredPoint.era.toLowerCase()}
                 </div>
               )}
 
-              <div className="text-sm text-zinc-300 mb-1">
+              <div className="mb-1 text-sm text-zinc-300">
                 <span className="text-zinc-500">Born:</span> {hoveredPoint.birth}
                 {hoveredPoint.death && <> • <span className="text-zinc-500">Died:</span> {hoveredPoint.death}</>}
               </div>
 
               {(hoveredPoint.birthplace || hoveredPoint.birthplaceCountry) && (
-                <div className="text-sm text-emerald-400 mt-2 pt-2 border-t border-zinc-800">
+                <div className="mt-2 border-t border-zinc-800 pt-2 text-sm text-emerald-400">
                   <span className="text-zinc-500">📍</span> {hoveredPoint.birthplace}{hoveredPoint.birthplace && hoveredPoint.birthplaceCountry ? ', ' : ''}{hoveredPoint.birthplaceCountry}
                 </div>
               )}

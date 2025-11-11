@@ -36,11 +36,7 @@ export default async function Page (props: { params: Promise<{ id: string }> }) 
   const selectedModelId = models.find(model => model.id === modelIdFromCookie)?.id
     || DEFAULT_MODEL_NAME;
 
-  const analysisData = chat.analysis
-    ? typeof chat.analysis === 'string'
-      ? JSON.parse(chat.analysis)
-      : chat.analysis
-    : null;
+  const analysisData = chat.analysis ? typeof chat.analysis === 'string' ? JSON.parse(chat.analysis) : chat.analysis : null;
 
   return (
     <>

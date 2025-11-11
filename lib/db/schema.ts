@@ -131,62 +131,87 @@ export const suggestion = pgTable(
 export type Suggestion = InferSelectModel<typeof suggestion>;
 
 export const pantheonPerson = pgTable('pantheon_person', {
-  id: integer('id').primaryKey(),
-  wdId: text('wd_id'),
-  wpId: integer('wp_id'),
-  slug: text('slug').notNull(),
-  name: text('name').notNull(),
+  id        : integer('id').primaryKey(),
+  wdId      : text('wd_id'),
+  wpId      : integer('wp_id'),
+  slug      : text('slug').notNull(),
+  name      : text('name').notNull(),
   occupation: text('occupation').notNull(),
-  domain: text('domain'),
-  era: text('era'),
-  probRatio: numeric('prob_ratio', { precision: 15, scale: 6 }),
-  gender: varchar('gender', { length: 1 }),
+  domain    : text('domain'),
+  era       : text('era'),
+  probRatio : numeric('prob_ratio', {
+    precision: 15,
+    scale    : 6
+  }),
+  gender : varchar('gender', { length: 1 }),
   twitter: text('twitter'),
-  alive: boolean('alive').notNull().default(false),
-  l: integer('l'),
-  hpiRaw: numeric('hpi_raw', { precision: 15, scale: 6 }),
+  alive  : boolean('alive').notNull()
+    .default(false),
+  l     : integer('l'),
+  hpiRaw: numeric('hpi_raw', {
+    precision: 15,
+    scale    : 6
+  }),
 
   // Birth info
   birthplaceName: text('birthplace_name'),
-  birthplaceLat: numeric('birthplace_lat', { precision: 10, scale: 7 }),
-  birthplaceLon: numeric('birthplace_lon', { precision: 10, scale: 7 }),
-  birthplaceGeonameid: integer('birthplace_geonameid'),
-  birthplaceCountry: text('birthplace_country'),
+  birthplaceLat : numeric('birthplace_lat', {
+    precision: 10,
+    scale    : 7
+  }),
+  birthplaceLon: numeric('birthplace_lon', {
+    precision: 10,
+    scale    : 7
+  }),
+  birthplaceGeonameid  : integer('birthplace_geonameid'),
+  birthplaceCountry    : text('birthplace_country'),
   birthplaceCountryCode: varchar('birthplace_country_code', { length: 2 }),
-  birthplaceContinent: text('birthplace_continent'),
-  birthdate: text('birthdate'),
-  birthyear: integer('birthyear'),
+  birthplaceContinent  : text('birthplace_continent'),
+  birthdate            : text('birthdate'),
+  birthyear            : integer('birthyear'),
 
   // Death info
   deathplaceName: text('deathplace_name'),
-  deathplaceLat: numeric('deathplace_lat', { precision: 10, scale: 7 }),
-  deathplaceLon: numeric('deathplace_lon', { precision: 10, scale: 7 }),
+  deathplaceLat : numeric('deathplace_lat', {
+    precision: 10,
+    scale    : 7
+  }),
+  deathplaceLon: numeric('deathplace_lon', {
+    precision: 10,
+    scale    : 7
+  }),
   deathplaceGeonameid: integer('deathplace_geonameid'),
-  deathplaceCountry: text('deathplace_country'),
-  deathdate: text('deathdate'),
-  deathyear: integer('deathyear'),
+  deathplaceCountry  : text('deathplace_country'),
+  deathdate          : text('deathdate'),
+  deathyear          : integer('deathyear'),
 
   // Geacron names
   birthplaceGeacronName: text('birthplace_geacron_name'),
   deathplaceGeacronName: text('deathplace_geacron_name'),
 
   // Metadata
-  isGroup: boolean('is_group').default(false),
-  lUnderscore: integer('l_'),
-  age: integer('age'),
-  nonEnPageViews: integer('non_en_page_views'),
-  coefficientOfVariation: numeric('coefficient_of_variation', { precision: 15, scale: 6 }),
-  hpi: numeric('hpi', { precision: 15, scale: 6 })
-}, (table) => ({
-  nameIdx: index('pantheon_name_idx').on(table.name),
-  hpiIdx: index('pantheon_hpi_idx').on(table.hpi),
-  domainIdx: index('pantheon_domain_idx').on(table.domain),
-  eraIdx: index('pantheon_era_idx').on(table.era),
-  occupationIdx: index('pantheon_occupation_idx').on(table.occupation),
-  birthplaceCountryIdx: index('pantheon_birthplace_country_idx').on(table.birthplaceCountry),
+  isGroup               : boolean('is_group').default(false),
+  lUnderscore           : integer('l_'),
+  age                   : integer('age'),
+  nonEnPageViews        : integer('non_en_page_views'),
+  coefficientOfVariation: numeric('coefficient_of_variation', {
+    precision: 15,
+    scale    : 6
+  }),
+  hpi: numeric('hpi', {
+    precision: 15,
+    scale    : 6
+  })
+}, table => ({
+  nameIdx               : index('pantheon_name_idx').on(table.name),
+  hpiIdx                : index('pantheon_hpi_idx').on(table.hpi),
+  domainIdx             : index('pantheon_domain_idx').on(table.domain),
+  eraIdx                : index('pantheon_era_idx').on(table.era),
+  occupationIdx         : index('pantheon_occupation_idx').on(table.occupation),
+  birthplaceCountryIdx  : index('pantheon_birthplace_country_idx').on(table.birthplaceCountry),
   birthplaceContinentIdx: index('pantheon_birthplace_continent_idx').on(table.birthplaceContinent),
-  birthyearIdx: index('pantheon_birthyear_idx').on(table.birthyear),
-  aliveIdx: index('pantheon_alive_idx').on(table.alive)
+  birthyearIdx          : index('pantheon_birthyear_idx').on(table.birthyear),
+  aliveIdx              : index('pantheon_alive_idx').on(table.alive)
 }));
 
 export type PantheonPerson = InferSelectModel<typeof pantheonPerson>;

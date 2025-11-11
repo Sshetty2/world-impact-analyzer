@@ -4,6 +4,7 @@ import { pantheonPerson } from '@/lib/db/schema';
 import { and, eq, inArray, gte, lte, isNotNull, SQL } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
+
 export const dynamic = 'force-dynamic';
 
 export type PantheonPersonFiltered = {
@@ -39,22 +40,28 @@ export type PantheonFilters = {
   limit?: number;
 };
 
-export async function GET(request: NextRequest) {
+export async function GET (request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
 
     // Parse filter parameters
     const filters: PantheonFilters = {
-      continents: searchParams.get('continents')?.split(',').filter(Boolean),
-      domains: searchParams.get('domains')?.split(',').filter(Boolean),
-      eras: searchParams.get('eras')?.split(',').filter(Boolean),
-      countries: searchParams.get('countries')?.split(',').filter(Boolean),
-      occupations: searchParams.get('occupations')?.split(',').filter(Boolean),
-      genders: searchParams.get('genders')?.split(',').filter(Boolean),
-      hpiMin: searchParams.get('hpiMin') ? parseFloat(searchParams.get('hpiMin')!) : undefined,
-      hpiMax: searchParams.get('hpiMax') ? parseFloat(searchParams.get('hpiMax')!) : undefined,
+      continents: searchParams.get('continents')?.split(',')
+        .filter(Boolean),
+      domains: searchParams.get('domains')?.split(',')
+        .filter(Boolean),
+      eras: searchParams.get('eras')?.split(',')
+        .filter(Boolean),
+      countries: searchParams.get('countries')?.split(',')
+        .filter(Boolean),
+      occupations: searchParams.get('occupations')?.split(',')
+        .filter(Boolean),
+      genders: searchParams.get('genders')?.split(',')
+        .filter(Boolean),
+      hpiMin   : searchParams.get('hpiMin') ? parseFloat(searchParams.get('hpiMin')!) : undefined,
+      hpiMax   : searchParams.get('hpiMax') ? parseFloat(searchParams.get('hpiMax')!) : undefined,
       aliveOnly: searchParams.get('aliveOnly') === 'true',
-      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 10000,
+      limit    : searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 10000
     };
 
     // Build WHERE conditions
@@ -104,23 +111,23 @@ export async function GET(request: NextRequest) {
     // Query with optimized payload (only necessary fields)
     const people = await db
       .select({
-        id: pantheonPerson.id,
-        name: pantheonPerson.name,
-        slug: pantheonPerson.slug,
-        birthplaceName: pantheonPerson.birthplaceName,
-        birthplaceLat: pantheonPerson.birthplaceLat,
-        birthplaceLon: pantheonPerson.birthplaceLon,
-        occupation: pantheonPerson.occupation,
-        domain: pantheonPerson.domain,
-        era: pantheonPerson.era,
-        gender: pantheonPerson.gender,
-        hpi: pantheonPerson.hpi,
-        birthplaceCountry: pantheonPerson.birthplaceCountry,
+        id                   : pantheonPerson.id,
+        name                 : pantheonPerson.name,
+        slug                 : pantheonPerson.slug,
+        birthplaceName       : pantheonPerson.birthplaceName,
+        birthplaceLat        : pantheonPerson.birthplaceLat,
+        birthplaceLon        : pantheonPerson.birthplaceLon,
+        occupation           : pantheonPerson.occupation,
+        domain               : pantheonPerson.domain,
+        era                  : pantheonPerson.era,
+        gender               : pantheonPerson.gender,
+        hpi                  : pantheonPerson.hpi,
+        birthplaceCountry    : pantheonPerson.birthplaceCountry,
         birthplaceCountryCode: pantheonPerson.birthplaceCountryCode,
-        birthplaceContinent: pantheonPerson.birthplaceContinent,
-        birthyear: pantheonPerson.birthyear,
-        deathyear: pantheonPerson.deathyear,
-        alive: pantheonPerson.alive,
+        birthplaceContinent  : pantheonPerson.birthplaceContinent,
+        birthyear            : pantheonPerson.birthyear,
+        deathyear            : pantheonPerson.deathyear,
+        alive                : pantheonPerson.alive
       })
       .from(pantheonPerson)
       .where(and(...conditions))
@@ -129,10 +136,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       people,
       count: people.length,
-      filters,
+      filters
     });
   } catch (error) {
     console.error('Error fetching pantheon people:', error);
+
     return NextResponse.json(
       { error: 'Failed to fetch people data' },
       { status: 500 }

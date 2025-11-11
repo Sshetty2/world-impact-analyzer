@@ -4,6 +4,7 @@ import { pantheonPerson } from '@/lib/db/schema';
 import { sql, isNotNull } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
+
 export const dynamic = 'force-dynamic';
 
 export type FilterOptions = {
@@ -17,7 +18,7 @@ export type FilterOptions = {
   totalCount: number;
 };
 
-export async function GET() {
+export async function GET () {
   try {
     // Get distinct continents
     const continentsResult = await db
@@ -25,7 +26,7 @@ export async function GET() {
       .from(pantheonPerson)
       .where(isNotNull(pantheonPerson.birthplaceContinent));
     const continents = continentsResult
-      .map((r) => r.continent)
+      .map(r => r.continent)
       .filter((c): c is string => c !== null)
       .sort();
 
@@ -35,7 +36,7 @@ export async function GET() {
       .from(pantheonPerson)
       .where(isNotNull(pantheonPerson.domain));
     const domains = domainsResult
-      .map((r) => r.domain)
+      .map(r => r.domain)
       .filter((d): d is string => d !== null)
       .sort();
 
@@ -45,7 +46,7 @@ export async function GET() {
       .from(pantheonPerson)
       .where(isNotNull(pantheonPerson.era));
     const eras = erasResult
-      .map((r) => r.era)
+      .map(r => r.era)
       .filter((e): e is string => e !== null)
       .sort();
 
@@ -53,7 +54,7 @@ export async function GET() {
     const countriesResult = await db
       .select({
         country: pantheonPerson.birthplaceCountry,
-        count: sql<number>`count(*)::int`,
+        count  : sql<number>`count(*)::int`
       })
       .from(pantheonPerson)
       .where(isNotNull(pantheonPerson.birthplaceCountry))
@@ -61,18 +62,18 @@ export async function GET() {
       .orderBy(sql`count(*) desc`);
 
     const countries = countriesResult
-      .map((r) => ({
+      .map(r => ({
         value: r.country!,
         label: `${r.country} (${r.count})`,
-        count: r.count,
+        count: r.count
       }))
-      .filter((c) => c.value !== null);
+      .filter(c => c.value !== null);
 
     // Get occupations with counts (for dropdown)
     const occupationsResult = await db
       .select({
         occupation: pantheonPerson.occupation,
-        count: sql<number>`count(*)::int`,
+        count     : sql<number>`count(*)::int`
       })
       .from(pantheonPerson)
       .where(isNotNull(pantheonPerson.occupation))
@@ -80,18 +81,18 @@ export async function GET() {
       .orderBy(sql`count(*) desc`);
 
     const occupations = occupationsResult
-      .map((r) => ({
+      .map(r => ({
         value: r.occupation!,
         label: `${r.occupation} (${r.count})`,
-        count: r.count,
+        count: r.count
       }))
-      .filter((o) => o.value !== null);
+      .filter(o => o.value !== null);
 
     // Get genders with counts (for dropdown)
     const gendersResult = await db
       .select({
         gender: pantheonPerson.gender,
-        count: sql<number>`count(*)::int`,
+        count : sql<number>`count(*)::int`
       })
       .from(pantheonPerson)
       .where(isNotNull(pantheonPerson.gender))
@@ -99,25 +100,25 @@ export async function GET() {
       .orderBy(sql`count(*) desc`);
 
     const genders = gendersResult
-      .map((r) => ({
+      .map(r => ({
         value: r.gender!,
         label: `${r.gender === 'M' ? 'Male' : r.gender === 'F' ? 'Female' : r.gender} (${r.count})`,
-        count: r.count,
+        count: r.count
       }))
-      .filter((g) => g.value !== null);
+      .filter(g => g.value !== null);
 
     // Get HPI range
     const hpiRangeResult = await db
       .select({
         min: sql<number>`min(${pantheonPerson.hpi}::numeric)`,
-        max: sql<number>`max(${pantheonPerson.hpi}::numeric)`,
+        max: sql<number>`max(${pantheonPerson.hpi}::numeric)`
       })
       .from(pantheonPerson)
       .where(isNotNull(pantheonPerson.hpi));
 
     const hpiRange = {
       min: hpiRangeResult[0]?.min || 0,
-      max: hpiRangeResult[0]?.max || 100,
+      max: hpiRangeResult[0]?.max || 100
     };
 
     // Get total count
@@ -135,12 +136,13 @@ export async function GET() {
       occupations,
       genders,
       hpiRange,
-      totalCount,
+      totalCount
     };
 
     return NextResponse.json(filterOptions);
   } catch (error) {
     console.error('Error fetching filter options:', error);
+
     return NextResponse.json(
       { error: 'Failed to fetch filter options' },
       { status: 500 }

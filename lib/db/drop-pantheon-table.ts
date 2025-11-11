@@ -5,6 +5,7 @@ import { sql } from 'drizzle-orm';
 
 // Database connection
 const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
 if (!connectionString) {
   throw new Error('DATABASE_URL or POSTGRES_URL must be set');
 }
@@ -12,7 +13,7 @@ if (!connectionString) {
 const client = postgres(connectionString);
 const db = drizzle(client);
 
-async function dropTable() {
+async function dropTable () {
   console.log('🗑️  Dropping pantheon_person table...');
 
   try {
@@ -26,7 +27,7 @@ async function dropTable() {
   }
 }
 
-dropTable().catch((error) => {
+dropTable().catch(error => {
   console.error('💥 Fatal error:', error);
   process.exit(1);
 });

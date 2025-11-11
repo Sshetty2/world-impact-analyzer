@@ -133,11 +133,12 @@ function PureBlock ({
   const { open: isSidebarOpen } = useSidebar();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const handleAnalysisSubmit = useCallback(async () => {
+  const handleAnalysisSubmit = useCallback(async () =>
+
     // Block component is for document editing, not analysis
     // This is a no-op to satisfy MultimodalInput's prop requirements
-    return Promise.resolve();
-  }, []);
+    Promise.resolve()
+  , []);
 
   useEffect(() => {
     if (documents && documents.length > 0) {
