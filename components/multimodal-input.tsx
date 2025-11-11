@@ -1,11 +1,13 @@
+/* eslint-disable max-depth */
 /* eslint-disable max-statements */
 'use client';
 
-import type {
-  Attachment,
-  ChatRequestOptions,
-  CreateMessage,
-  Message
+import {
+  type Attachment,
+  type ChatRequestOptions,
+  type CreateMessage,
+  type Message,
+  parseDataStreamPart
 } from 'ai';
 import cx from 'classnames';
 import {
@@ -27,9 +29,9 @@ import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
-import { SuggestedActions } from './suggested-actions';
 import equal from 'fast-deep-equal';
-import { AnalysisInstructions } from './analysis-instructions';
+import { Analysis } from '@/types/analysis';
+import { AnalysisStatus } from './analysis-status';
 
 function PureMultimodalInput ({
   chatId,
@@ -72,6 +74,7 @@ function PureMultimodalInput ({
   const { width } = useWindowSize();
   const [isAnalyzed, setIsAnalyzed] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisStatus, setAnalysisStatus] = useState<{ message: string; progress: number } | null>(null);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -199,6 +202,10 @@ function PureMultimodalInput ({
     }
 
     setIsAnalyzing(true);
+    setAnalysisStatus({
+      message : 'Starting analysis...',
+      progress: 5
+    });
 
     try {
       const response = await fetch('/api/analyze', {
@@ -222,25 +229,126 @@ function PureMultimodalInput ({
         return;
       }
 
-      const analysisResponse = await response.json();
+      // Check if response is streaming (has body stream) or cached JSON
+      const contentType = response.headers.get('content-type');
 
-      if (analysisResponse.status === 'existing' || analysisResponse.status === 'new') {
-        setAnalysisData?.(analysisResponse.result);
-        setIsAnalyzed(true);
+      if (contentType?.includes('application/json')) {
+        // Cached result - no streaming
+        const analysisResponse = await response.json();
 
-        if (analysisResponse.result) {
-          window.history.replaceState({}, '', `/chat/${chatId}`);
+        if (analysisResponse.status === 'existing') {
+          setAnalysisData?.(analysisResponse.result);
+          setIsAnalyzed(true);
 
-          // Chat record already created in /api/analyze, no need to send analyzedPersonName
-          handleSubmit(undefined, { experimental_attachments: attachments });
+          if (analysisResponse.result) {
+            window.history.replaceState({}, '', `/chat/${chatId}`);
 
-          setAttachments([]);
-          setLocalStorageInput('');
-          resetHeight();
+            // Chat record already created in /api/analyze, no need to send analyzedPersonName
+            handleSubmit(undefined, { experimental_attachments: attachments });
 
-          if (width && width > 768) {
-            textareaRef.current?.focus();
+            setAttachments([]);
+            setLocalStorageInput('');
+            resetHeight();
+
+            if (width && width > 768) {
+              textareaRef.current?.focus();
+            }
           }
+        }
+      } else {
+        // Streaming response - consume the stream
+        if (!response.body) {
+          throw new Error('Response body is null');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        try {
+          // eslint-disable-next-line no-constant-condition
+          while (true) {
+            // eslint-disable-next-line no-await-in-loop
+            const { done, value } = await reader.read();
+
+            if (done) {
+              break;
+            }
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+
+            // Keep the last incomplete line in the buffer
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              if (!line.trim()) {
+                continue;
+              }
+
+              try {
+                // Use the official AI SDK parser
+                const parsedPart = parseDataStreamPart(line);
+
+                type StatusData = { message: string; progress: number }
+
+                if (parsedPart.type === 'data') {
+                  const data = parsedPart.value[0] as unknown as { type: string; content?: { message: string; progress: number } | Analysis };
+
+                  if (data.type === 'status') {
+                    if (data.content) {
+                      setAnalysisStatus(data.content as StatusData);
+                    }
+                  } else if (data.type === 'error') {
+                    if (data.content) {
+                      toast.error((data.content as StatusData).message);
+                      setIsAnalyzing(false);
+                      setAnalysisStatus(null);
+
+                      return;
+                    }
+                  } else if (data.type === 'complete') {
+                    const analysisResponse = data.content as Analysis;
+
+                    // eslint-disable-next-line no-eq-null
+                    if (analysisResponse == null) {
+                      toast.error('Analysis response is null');
+
+                      return;
+                    }
+
+                    if (analysisResponse.status === 'new') {
+                      setAnalysisData?.(analysisResponse.result);
+                      setIsAnalyzed(true);
+
+                      if (analysisResponse.result) {
+                        window.history.replaceState({}, '', `/chat/${chatId}`);
+
+                        // Chat record already created in /api/analyze, no need to send analyzedPersonName
+                        handleSubmit(undefined, { experimental_attachments: attachments });
+
+                        setAttachments([]);
+                        setLocalStorageInput('');
+                        resetHeight();
+
+                        if (width && width > 768) {
+                          textareaRef.current?.focus();
+                        }
+                      }
+                    }
+                  }
+                }
+              } catch (parseError) {
+                // Skip invalid lines (might be incomplete chunks)
+                // Only log if it's not an empty line
+                if (line.trim()) {
+                  console.debug('Skipping unparseable stream line:', line);
+                }
+              }
+            }
+          }
+        } finally {
+          reader.releaseLock();
         }
       }
     } catch (error) {
@@ -248,6 +356,7 @@ function PureMultimodalInput ({
       console.error('Error in handleNameSubmit:', error);
     } finally {
       setIsAnalyzing(false);
+      setAnalysisStatus(null);
     }
   }, [attachments, chatId, handleSubmit, input, setAnalysisData, setAttachments, setLocalStorageInput, width]);
 
@@ -293,7 +402,10 @@ function PureMultimodalInput ({
             </Button>
           </div>
         </div>
-        <AnalysisInstructions />
+        <AnalysisStatus
+          isAnalyzing={isAnalyzing}
+          status={analysisStatus}
+        />
       </div>
     );
   }

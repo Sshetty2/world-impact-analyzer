@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { search } from 'fast-fuzzy';
+import { createDataStreamResponse } from 'ai';
 
 import { auth } from '@/app/(auth)/auth';
 import { analyzeHistoricalFigure } from '@/lib/ai/analyze';
@@ -90,11 +91,12 @@ export async function POST (request: Request) {
 
     const { personName, chatId } = validation.data;
 
-    // 1️⃣ Check Cache
+    // 1️⃣ Check Cache (before streaming starts)
     try {
       const cachedResult = await getCachedAnalysis(personName);
 
       if (cachedResult) {
+        // Return cached result immediately without streaming
         return NextResponse.json<AnalyzeResponse>({
           status: 'existing',
           result: cachedResult as HistoricalFigureAnalysis
@@ -107,101 +109,171 @@ export async function POST (request: Request) {
       // Continue to analysis if cache fails
     }
 
-    // 2️⃣ Fetch Wikipedia Data via Lambda Proxy with retry logic
-    let wikiContent: string;
+    // Use streaming for new analysis
+    return createDataStreamResponse({
+      // eslint-disable-next-line max-statements
+      execute: async dataStream => {
+        try {
+          // 2️⃣ Fetch Wikipedia Data
+          dataStream.writeData({
+            type   : 'status',
+            content: {
+              message : 'Fetching Wikipedia data...',
+              progress: 10
+            }
+          });
 
-    try {
-      const lambdaUrl = `${process.env.AWS_LAMBDA_GATEWAY_URL}/world-impact-analysis`;
+          let wikiContent: string;
 
-      if (!lambdaUrl) {
-        throw new Error('AWS_LAMBDA_GATEWAY_URL is not configured');
+          try {
+            const lambdaUrl = `${process.env.AWS_LAMBDA_GATEWAY_URL}/world-impact-analysis`;
+
+            if (!lambdaUrl) {
+              throw new Error('AWS_LAMBDA_GATEWAY_URL is not configured');
+            }
+
+            const lambdaResponse = await fetchLambdaWithRetry(lambdaUrl, {
+              method : 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body   : JSON.stringify({ personName })
+            });
+
+            if (!lambdaResponse.ok) {
+              throw new Error(`Lambda returned status ${lambdaResponse.status}`);
+            }
+
+            const lambdaData = await lambdaResponse.json();
+
+            if (!lambdaData.success || !lambdaData.content) {
+              throw new Error(lambdaData.error || 'Lambda failed to fetch Wikipedia content');
+            }
+
+            wikiContent = lambdaData.content;
+
+            if (!wikiContent || wikiContent.length === 0) {
+              dataStream.writeData({
+                type   : 'error',
+                content: 'Wikipedia returned empty content'
+              });
+
+              return;
+            }
+
+            // 3️⃣ Validate Content
+            dataStream.writeData({
+              type   : 'status',
+              content: {
+                message : 'Validating biographical content...',
+                progress: 20
+              }
+            });
+
+            if (!hasEnhancedBioMarkers(wikiContent, personName)) {
+              dataStream.writeData({
+                type   : 'error',
+                content: 'No relevant biography markers found in Wikipedia entry'
+              });
+
+              return;
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Could not find Wikipedia entry for this person';
+
+            dataStream.writeData({
+              type   : 'error',
+              content: errorMessage
+            });
+
+            return;
+          }
+
+          // 4️⃣ Summarize Wikipedia Content
+          dataStream.writeData({
+            type   : 'status',
+            content: {
+              message : 'Summarizing Wikipedia content...',
+              progress: 35
+            }
+          });
+
+          let summary: HistoricalFigureAnalysis;
+
+          try {
+            summary = await summarizeWikiContent(wikiContent, personName);
+          } catch (error) {
+            dataStream.writeData({
+              type   : 'error',
+              content: error instanceof Error ? error.message : 'Could not summarize Wikipedia entry'
+            });
+
+            return;
+          }
+
+          // 5️⃣ Run AI Analysis
+          dataStream.writeData({
+            type   : 'status',
+            content: {
+              message : 'Analyzing historical impact...',
+              progress: 50
+            }
+          });
+
+          let result: HistoricalFigureAnalysis;
+
+          try {
+            result = await analyzeHistoricalFigure(
+              JSON.stringify(summary, null, 2),
+              personName
+            );
+          } catch (error) {
+            dataStream.writeData({
+              type   : 'error',
+              content: error instanceof Error ? error.message : 'Could not analyze historical figure'
+            });
+
+            return;
+          }
+
+          // 6️⃣ Save Results
+          dataStream.writeData({
+            type   : 'status',
+            content: {
+              message : 'Saving results...',
+              progress: 90
+            }
+          });
+
+          // Use the LLM's returned name as the cache key, not the user's input
+          await saveAnalysisToCache({
+            name    : result.name,
+            analysis: result
+          });
+
+          // Create the Chat record so it exists when /api/chat is called
+          await saveChat({
+            id                : chatId,
+            userId            : session.user?.id || '',
+            title             : result.name,
+            analyzedPersonName: result.name
+          });
+
+          // Send final result
+          dataStream.writeData({
+            type   : 'complete',
+            content: {
+              status: 'new',
+              result: result as any
+            } as any
+          });
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to generate analysis';
+
+          dataStream.writeData({
+            type   : 'error',
+            content: errorMessage
+          });
+        }
       }
-
-      const lambdaResponse = await fetchLambdaWithRetry(lambdaUrl, {
-        method : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ personName })
-      });
-
-      if (!lambdaResponse.ok) {
-        throw new Error(`Lambda returned status ${lambdaResponse.status}`);
-      }
-
-      const lambdaData = await lambdaResponse.json();
-
-      if (!lambdaData.success || !lambdaData.content) {
-        throw new Error(lambdaData.error || 'Lambda failed to fetch Wikipedia content');
-      }
-
-      wikiContent = lambdaData.content;
-
-      if (!wikiContent || wikiContent.length === 0) {
-        return NextResponse.json<AnalyzeErrorResponse>(
-          { error: 'Wikipedia returned empty content' },
-          { status: 400 }
-        );
-      }
-
-      if (!hasEnhancedBioMarkers(wikiContent, personName)) {
-        return NextResponse.json<AnalyzeErrorResponse>(
-          { error: 'No relevant biography markers found in Wikipedia entry' },
-          { status: 400 }
-        );
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Could not find Wikipedia entry for this person';
-
-      return NextResponse.json<AnalyzeErrorResponse>(
-        { error: errorMessage },
-        { status: 400 }
-      );
-    }
-
-    // 3️⃣ Summarize Wikipedia Content
-    let summary: HistoricalFigureAnalysis;
-
-    try {
-      summary = await summarizeWikiContent(wikiContent, personName);
-    } catch (error) {
-      return NextResponse.json<AnalyzeErrorResponse>(
-        { error: error instanceof Error ? error.message : 'Could not summarize Wikipedia entry' },
-        { status: 400 }
-      );
-    }
-
-    // 4️⃣ Run AI Analysis
-    let result: HistoricalFigureAnalysis;
-
-    try {
-      result = await analyzeHistoricalFigure(
-        JSON.stringify(summary, null, 2),
-        personName
-      );
-    } catch (error) {
-      return NextResponse.json<AnalyzeErrorResponse>(
-        { error: error instanceof Error ? error.message : 'Could not analyze historical figure' },
-        { status: 400 }
-      );
-    }
-
-    // 5️⃣ Cache and Return Result
-    // Use the LLM's returned name as the cache key, not the user's input
-    await saveAnalysisToCache({
-      name    : result.name,
-      analysis: result
-    });
-
-    // Create the Chat record so it exists when /api/chat is called
-    await saveChat({
-      id                : chatId,
-      userId            : session.user?.id || '',
-      title             : result.name,
-      analyzedPersonName: result.name
-    });
-
-    return NextResponse.json<AnalyzeResponse>({
-      status: 'new',
-      result
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to generate analysis';
