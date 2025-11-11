@@ -465,7 +465,7 @@ export function Chat ({
               )}>
                 <ImpactGlobe
                   people={globePeople}
-                  autoRotateSpeed={isAnalyzing ? 1.5 : 0.5}
+                  autoRotateSpeed={0.20}
                   isAnalyzing={isAnalyzing || globeLoading}
                   onSelect={person => setInput(person.name)}
                   onDoubleClick={handlePersonDoubleClick}
