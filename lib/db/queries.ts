@@ -63,13 +63,12 @@ export async function saveChat ({
   analyzedPersonName: string;
 }) {
   try {
-   
     return await db.insert(chat).values({
       id,
-      createdAt: new Date(),
+      createdAt         : new Date(),
       userId,
       title,
-      analyzedPersonName
+      analyzedPersonName: analyzedPersonName.toLowerCase()
     });
   } catch (error) {
     console.error('Failed to save chat in database');

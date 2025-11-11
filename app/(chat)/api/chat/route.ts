@@ -104,9 +104,6 @@ export async function POST (request: Request) {
 
   const chatData = await getChatById({ id });
 
-  // eslint-disable-next-line no-console
-  console.log('chatData', chatData);
-
   if (!chatData) {
     return new Response('Chat not found. Analysis must be completed first.', { status: 400 });
   }
@@ -131,7 +128,8 @@ export async function POST (request: Request) {
         content: userMessageId
       });
 
-      const analysisData = chatData?.analysis ? (typeof chatData.analysis === 'string' ? JSON.parse(chatData.analysis) : chatData.analysis) : null;
+      // eslint-disable-next-line no-nested-ternary
+      const analysisData = chatData?.analysis ? typeof chatData.analysis === 'string' ? JSON.parse(chatData.analysis) : chatData.analysis : null;
 
       const result = streamText({
         model                   : customModel(model.apiIdentifier),

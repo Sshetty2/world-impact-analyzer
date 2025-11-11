@@ -7,10 +7,10 @@ import { Contributions } from './contributions';
 import { Sentiment } from './sentiment';
 import { PersonalityTraits } from './personality-traits';
 import { WorldMap } from './world-map';
-import { HistoricalFigureAnalysis } from '@/app/api/analyze/types';
+import { HistoricalFigureAnalysis } from '@/lib/ai/types';
 
 interface AnalysisPanelProps {
-  data: { properties: HistoricalFigureAnalysis };
+  data: HistoricalFigureAnalysis;
 }
 
 export function AnalysisPanel ({ data }: AnalysisPanelProps) {
@@ -37,7 +37,7 @@ export function AnalysisPanel ({ data }: AnalysisPanelProps) {
     timeline_of_influence = [],
     major_contributions = [],
     personality_characteristics = {}
-  } = data.properties || {};
+  } = data || {};
 
   return (
     <div className="mt-8 h-full space-y-6 overflow-y-auto p-4">
