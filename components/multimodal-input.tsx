@@ -46,6 +46,8 @@ function PureMultimodalInput ({
   append,
   handleSubmit,
   setAnalysisData,
+  isAnalyzing,
+  setIsAnalyzing,
   className
 }: {
   chatId: string;
@@ -69,11 +71,12 @@ function PureMultimodalInput ({
   ) => void;
   className?: string;
   setAnalysisData?: Dispatch<SetStateAction<any>>;
+  isAnalyzing: boolean;
+  setIsAnalyzing: Dispatch<SetStateAction<boolean>>;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
   const [isAnalyzed, setIsAnalyzed] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisStatus, setAnalysisStatus] = useState<{ message: string; progress: number } | null>(null);
 
   useEffect(() => {
@@ -507,6 +510,10 @@ export const MultimodalInput = memo(
     }
 
     if (prevProps.isLoading !== nextProps.isLoading) {
+      return false;
+    }
+
+    if (prevProps.isAnalyzing !== nextProps.isAnalyzing) {
       return false;
     }
 
