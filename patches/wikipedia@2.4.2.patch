@@ -1,0 +1,12 @@
+diff --git a/dist/request.js b/dist/request.js
+index 7076dc21c8f2e16c7850517bc159a3984ded1d84..3c5c175a2ac1ceae721380fda3c40100d2b9754b 100644
+--- a/dist/request.js
++++ b/dist/request.js
+@@ -12,6 +12,7 @@ async function callAPI(url) {
+     const options = {
+         headers: {
+             "Api-User-Agent": USER_AGENT,
++            "User-Agent": USER_AGENT,
+         },
+     };
+     try {

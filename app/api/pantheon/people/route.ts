@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 export type PantheonPersonFiltered = {
   id: number;
   name: string;
+  slug: string;
   birthplaceName: string | null;
   birthplaceLat: string | null;
   birthplaceLon: string | null;
@@ -105,6 +106,7 @@ export async function GET(request: NextRequest) {
       .select({
         id: pantheonPerson.id,
         name: pantheonPerson.name,
+        slug: pantheonPerson.slug,
         birthplaceName: pantheonPerson.birthplaceName,
         birthplaceLat: pantheonPerson.birthplaceLat,
         birthplaceLon: pantheonPerson.birthplaceLon,

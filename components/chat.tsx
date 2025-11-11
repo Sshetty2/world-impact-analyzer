@@ -1,3 +1,4 @@
+/* eslint-disable max-depth */
 /* eslint-disable max-statements */
 'use client';
 
@@ -20,6 +21,9 @@ import { PantheonFilters as FilterType, PantheonPersonFiltered } from '@/app/api
 import cx from 'classnames';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+import { parseDataStreamPart } from 'ai';
+import { toast } from 'sonner';
+import type { Analysis } from '@/types/analysis';
 
 export function Chat ({
   id,
@@ -40,6 +44,7 @@ export function Chat ({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [selectedPersonForAnalysis, setSelectedPersonForAnalysis] = useState<PersonPin | null>(null);
+  const [analysisStatus, setAnalysisStatus] = useState<{ message: string; progress: number } | null>(null);
   const { mutate } = useSWRConfig();
 
   const {
@@ -96,8 +101,14 @@ export function Chat ({
 
   // Helper function to format years (negative years become BC)
   const formatYear = useCallback((year: number | null | undefined): string => {
-    if (year === null || year === undefined) return 'Unknown';
-    if (year < 0) return `${Math.abs(year)} BC`;
+    if (year === null || year === undefined) {
+      return 'Unknown';
+    }
+
+    if (year < 0) {
+      return `${Math.abs(year)} BC`;
+    }
+
     return year.toString();
   }, []);
 
@@ -154,6 +165,7 @@ export function Chat ({
           .map((p: PantheonPersonFiltered) => ({
             id               : p.id.toString(),
             name             : p.name,
+            slug             : p.slug,
             lat              : parseFloat(p.birthplaceLat!),
             lon              : parseFloat(p.birthplaceLon!),
             color            : getDomainColor(p.domain),
@@ -198,15 +210,167 @@ export function Chat ({
     setShowAnalysisModal(true);
   }, []);
 
+  // Shared analysis handler used by both modal and multimodal input
+  const handleAnalysisSubmit = useCallback(async (
+    personName: string,
+    options?: {
+      slug?: string;
+      onComplete?: () => void;
+    }
+  ) => {
+    if (!personName.trim()) {
+      toast.error('Please enter a name');
+
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAnalysisStatus({
+      message : 'Starting analysis...',
+      progress: 5
+    });
+
+    try {
+      const response = await fetch('/api/analyze', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({
+          personName,
+          chatId: id,
+          ...(options?.slug && { slug: options.slug })
+        })
+      });
+
+      console.log('RESPONSE', response);
+
+      if (!response.ok) {
+        const error = await response.json();
+
+        if (response.status === 401) {
+          toast.error('Please sign in to analyze historical figures');
+        } else {
+          toast.error(error.error || 'Analysis failed');
+        }
+
+        return;
+      }
+
+      // Check if response is streaming or cached JSON
+      const contentType = response.headers.get('content-type');
+
+      if (contentType?.includes('application/json')) {
+        // Cached result - no streaming
+        const analysisResponse = await response.json();
+
+        if (analysisResponse.status === 'existing') {
+          setAnalysisData(analysisResponse.result);
+
+          if (analysisResponse.result) {
+            window.history.replaceState({}, '', `/chat/${id}`);
+            handleSubmit(undefined, { experimental_attachments: attachments });
+            setAttachments([]);
+            options?.onComplete?.();
+          }
+        }
+      } else {
+        // Streaming response
+        if (!response.body) {
+          throw new Error('Response body is null');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+
+            if (done) {
+              break;
+            }
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              if (!line.trim()) {
+                continue;
+              }
+
+              try {
+                const parsedPart = parseDataStreamPart(line);
+                type StatusData = { message: string; progress: number };
+
+                if (parsedPart.type === 'data') {
+                  const data = parsedPart.value[0] as unknown as {
+                    type: string;
+                    content?: StatusData | Analysis | string;
+                  };
+
+                  if (data.type === 'status') {
+                    if (data.content) {
+                      setAnalysisStatus(data.content as StatusData);
+                    }
+                  } else if (data.type === 'error') {
+                    if (data.content) {
+                      toast.error(data.content as string);
+                      setIsAnalyzing(false);
+                      setAnalysisStatus(null);
+
+                      return;
+                    }
+                  } else if (data.type === 'complete') {
+                    const analysisResponse = data.content as Analysis;
+
+                    if (analysisResponse == null) {
+                      toast.error('Analysis response is null');
+
+                      return;
+                    }
+
+                    if (analysisResponse.status === 'new') {
+                      setAnalysisData(analysisResponse.result);
+
+                      if (analysisResponse.result) {
+                        window.history.replaceState({}, '', `/chat/${id}`);
+                        handleSubmit(undefined, { experimental_attachments: attachments });
+                        setAttachments([]);
+                        options?.onComplete?.();
+                      }
+                    }
+                  }
+                }
+              } catch (parseError) {
+                if (line.trim()) {
+                  console.debug('Skipping unparseable stream line:', line);
+                }
+              }
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to process request');
+      console.error('Error in handleAnalysisSubmit:', error);
+    } finally {
+      setIsAnalyzing(false);
+      setAnalysisStatus(null);
+    }
+  }, [id, handleSubmit, attachments, setAttachments, setAnalysisData, setIsAnalyzing, setAnalysisStatus]);
+
   const handleConfirmAnalysis = useCallback(() => {
     if (selectedPersonForAnalysis) {
-      setInput(selectedPersonForAnalysis.name);
       setShowAnalysisModal(false);
-      // Trigger the analysis by setting input and marking as analyzing
-      setIsAnalyzing(true);
+      handleAnalysisSubmit(selectedPersonForAnalysis.name, {
+        slug: selectedPersonForAnalysis.slug
+      });
       setSelectedPersonForAnalysis(null);
     }
-  }, [selectedPersonForAnalysis, setInput]);
+  }, [selectedPersonForAnalysis, handleAnalysisSubmit]);
 
   return (
     <div className="h-screen overflow-hidden">
@@ -259,12 +423,13 @@ export function Chat ({
                   input={input}
                   isAnalyzing={isAnalyzing}
                   setIsAnalyzing={setIsAnalyzing}
+                  analysisStatus={analysisStatus}
                   setAnalysisData={data => {
                     setAnalysisData(data);
                     setIsAnalyzing(false);
                   }}
                   setInput={setInput}
-                  handleSubmit={handleSubmit}
+                  handleAnalysisSubmit={handleAnalysisSubmit}
                   isLoading={isLoading}
                   stop={stop}
                   attachments={attachments}
@@ -284,9 +449,9 @@ export function Chat ({
           {analysisData ? (
             <AnalysisPanel data={analysisData} />
           ) : (
-            <div className="relative h-full w-full flex flex-col bg-background">
+            <div className="relative flex size-full flex-col bg-background">
               {/* Stats overlay - positioned at top right */}
-              <div className="absolute top-4 right-4 z-10 rounded-lg border border-zinc-800 bg-zinc-900/90 px-4 py-2.5 backdrop-blur-sm shadow-lg">
+              <div className="absolute right-4 top-4 z-10 rounded-lg border border-zinc-800 bg-zinc-900/90 px-4 py-2.5 shadow-lg backdrop-blur-sm">
                 <p className="text-sm text-zinc-300">
                   Showing <span className="font-semibold text-white">{globePeople.length.toLocaleString()}</span> historical figures
                 </p>
@@ -311,12 +476,14 @@ export function Chat ({
       </PanelGroup>
 
       {/* Analysis Confirmation Modal */}
-      <Dialog.Root open={showAnalysisModal} onOpenChange={setShowAnalysisModal}>
+      <Dialog.Root
+        open={showAnalysisModal}
+        onOpenChange={setShowAnalysisModal}>
         <Dialog.Portal>
           <Dialog.Overlay
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
           />
-          <Dialog.Content className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] bg-gradient-to-b from-zinc-900 to-zinc-950 rounded-2xl border border-zinc-700/50 shadow-2xl w-[calc(100%-2rem)] max-w-lg z-50 overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-[2%] data-[state=open]:slide-in-from-top-[2%]">
+          <Dialog.Content className="fixed left-[50%] top-[50%] z-50 w-[calc(100%-2rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-2xl border border-zinc-700/50 bg-gradient-to-b from-zinc-900 to-zinc-950 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-[2%] data-[state=open]:slide-in-from-top-[2%]">
             {/* Accent bar */}
             {selectedPersonForAnalysis && (
               <div
@@ -330,23 +497,23 @@ export function Chat ({
               {/* Close button */}
               <Dialog.Close asChild>
                 <button
-                  className="absolute top-6 right-6 text-zinc-500 hover:text-zinc-300 transition-colors rounded-lg hover:bg-zinc-800/50 p-1.5"
+                  className="absolute right-6 top-6 rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-zinc-800/50 hover:text-zinc-300"
                   aria-label="Close"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="size-5" />
                 </button>
               </Dialog.Close>
 
               {/* Title */}
-              <Dialog.Title className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-6">
+              <Dialog.Title className="mb-6 text-sm font-medium uppercase tracking-wider text-zinc-400">
                 Initiate Analysis
               </Dialog.Title>
 
               {/* Person Info Card */}
               {selectedPersonForAnalysis && (
-                <div className="bg-zinc-800/40 rounded-xl p-6 mb-6 border border-zinc-700/30">
+                <div className="mb-6 rounded-xl border border-zinc-700/30 bg-zinc-800/40 p-6">
                   {/* Name */}
-                  <h3 className="text-2xl font-bold text-white mb-3 leading-tight">
+                  <h3 className="mb-3 text-2xl font-bold leading-tight text-white">
                     {selectedPersonForAnalysis.name}
                   </h3>
 
@@ -354,8 +521,8 @@ export function Chat ({
                   <div className="space-y-2">
                     {selectedPersonForAnalysis.occupation && (
                       <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                        <span className="text-sm text-amber-400 font-medium capitalize">
+                        <div className="size-1.5 rounded-full bg-amber-400" />
+                        <span className="text-sm font-medium capitalize text-amber-400">
                           {selectedPersonForAnalysis.occupation.toLowerCase()}
                         </span>
                       </div>
@@ -363,8 +530,8 @@ export function Chat ({
 
                     {selectedPersonForAnalysis.era && (
                       <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                        <span className="text-sm text-blue-400 font-medium capitalize">
+                        <div className="size-1.5 rounded-full bg-blue-400" />
+                        <span className="text-sm font-medium capitalize text-blue-400">
                           {selectedPersonForAnalysis.era.toLowerCase()}
                         </span>
                       </div>
@@ -372,7 +539,7 @@ export function Chat ({
 
                     {selectedPersonForAnalysis.birth && selectedPersonForAnalysis.death && (
                       <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+                        <div className="size-1.5 rounded-full bg-zinc-500" />
                         <span className="text-sm text-zinc-400">
                           {selectedPersonForAnalysis.birth} - {selectedPersonForAnalysis.death}
                         </span>
@@ -381,7 +548,7 @@ export function Chat ({
 
                     {(selectedPersonForAnalysis.birthplace || selectedPersonForAnalysis.birthplaceCountry) && (
                       <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        <div className="size-1.5 rounded-full bg-emerald-400" />
                         <span className="text-sm text-emerald-400">
                           {selectedPersonForAnalysis.birthplace}
                           {selectedPersonForAnalysis.birthplace && selectedPersonForAnalysis.birthplaceCountry ? ', ' : ''}
@@ -394,20 +561,20 @@ export function Chat ({
               )}
 
               {/* Description */}
-              <Dialog.Description className="text-sm text-zinc-400 leading-relaxed mb-8">
+              <Dialog.Description className="mb-8 text-sm leading-relaxed text-zinc-400">
                 This will perform a comprehensive analysis including impact scores, timeline of influence, major contributions, and historical context.
               </Dialog.Description>
 
               {/* Actions */}
               <div className="flex gap-3">
                 <Dialog.Close asChild>
-                  <button className="flex-1 px-5 py-3 rounded-xl bg-zinc-800/50 text-zinc-300 hover:bg-zinc-800 transition-all text-sm font-semibold border border-zinc-700/50 hover:border-zinc-600">
+                  <button className="flex-1 rounded-xl border border-zinc-700/50 bg-zinc-800/50 px-5 py-3 text-sm font-semibold text-zinc-300 transition-all hover:border-zinc-600 hover:bg-zinc-800">
                     Cancel
                   </button>
                 </Dialog.Close>
                 <button
                   onClick={handleConfirmAnalysis}
-                  className="flex-1 px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-500 hover:to-blue-400 transition-all text-sm font-semibold shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30"
+                  className="flex-1 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:from-blue-500 hover:to-blue-400 hover:shadow-blue-500/30"
                 >
                   Start Analysis
                 </button>

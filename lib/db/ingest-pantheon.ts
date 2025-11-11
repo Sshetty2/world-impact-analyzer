@@ -98,7 +98,7 @@ async function ingestData() {
     columns: true,
     skip_empty_lines: true,
     trim: true,
-  });
+  }) as Array<Record<string, string>>;
 
   const totalRecords = limit ? Math.min(limit, records.length) : records.length;
   console.log(`✓ Loaded CSV with ${records.length} records`);

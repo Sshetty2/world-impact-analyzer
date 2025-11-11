@@ -6,7 +6,8 @@ import * as Checkbox from '@radix-ui/react-checkbox';
 import * as Slider from '@radix-ui/react-slider';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { Check } from 'lucide-react';
-import { FilterOptions, PantheonFilters } from '@/app/api/pantheon/people/route';
+import type { PantheonFilters } from '@/app/api/pantheon/people/route';
+import type { FilterOptions } from '@/app/api/pantheon/filter-options/route';
 
 // Continent code to display name mapping
 const CONTINENT_NAMES: Record<string, string> = {

@@ -44,10 +44,11 @@ function PureMultimodalInput ({
   messages,
   setMessages,
   append,
-  handleSubmit,
+  handleAnalysisSubmit,
   setAnalysisData,
   isAnalyzing,
   setIsAnalyzing,
+  analysisStatus,
   className
 }: {
   chatId: string;
@@ -63,21 +64,22 @@ function PureMultimodalInput ({
     message: Message | CreateMessage,
     chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
-  handleSubmit: (
-    event?: {
-      preventDefault?: () => void;
-    },
-    chatRequestOptions?: ChatRequestOptions,
-  ) => void;
+  handleAnalysisSubmit: (
+    personName: string,
+    options?: {
+      slug?: string;
+      onComplete?: () => void;
+    }
+  ) => Promise<void>;
   className?: string;
   setAnalysisData?: Dispatch<SetStateAction<any>>;
   isAnalyzing: boolean;
   setIsAnalyzing: Dispatch<SetStateAction<boolean>>;
+  analysisStatus: { message: string; progress: number } | null;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
   const [isAnalyzed, setIsAnalyzed] = useState(false);
-  const [analysisStatus, setAnalysisStatus] = useState<{ message: string; progress: number } | null>(null);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -133,7 +135,13 @@ function PureMultimodalInput ({
   const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`);
 
-    handleSubmit(undefined, { experimental_attachments: attachments });
+    append(
+      {
+        role   : 'user',
+        content: input
+      },
+      { experimental_attachments: attachments }
+    );
 
     setAttachments([]);
     setLocalStorageInput('');
@@ -142,7 +150,7 @@ function PureMultimodalInput ({
     if (width && width > 768) {
       textareaRef.current?.focus();
     }
-  }, [chatId, handleSubmit, attachments, setAttachments, setLocalStorageInput, width]);
+  }, [chatId, attachments, setAttachments, setLocalStorageInput, width, append, input]);
 
   const uploadFile = async (file: File) => {
     const formData = new FormData();
@@ -204,164 +212,20 @@ function PureMultimodalInput ({
       return;
     }
 
-    setIsAnalyzing(true);
-    setAnalysisStatus({
-      message : 'Starting analysis...',
-      progress: 5
+    // Use the shared analysis handler from parent
+    await handleAnalysisSubmit(input, {
+      onComplete: () => {
+        // Handle post-analysis UI updates
+        setIsAnalyzed(true);
+        setLocalStorageInput('');
+        resetHeight();
+
+        if (width && width > 768) {
+          textareaRef.current?.focus();
+        }
+      }
     });
-
-    try {
-      const response = await fetch('/api/analyze', {
-        method : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({
-          personName: input,
-          chatId
-        })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-
-        if (response.status === 401) {
-          toast.error('Please sign in to analyze historical figures');
-        } else {
-          toast.error(error.error || 'Analysis failed');
-        }
-
-        return;
-      }
-
-      // Check if response is streaming (has body stream) or cached JSON
-      const contentType = response.headers.get('content-type');
-
-      if (contentType?.includes('application/json')) {
-        // Cached result - no streaming
-        const analysisResponse = await response.json();
-
-        if (analysisResponse.status === 'existing') {
-          setAnalysisData?.(analysisResponse.result);
-          setIsAnalyzed(true);
-
-          if (analysisResponse.result) {
-            window.history.replaceState({}, '', `/chat/${chatId}`);
-
-            // Chat record already created in /api/analyze, no need to send analyzedPersonName
-            handleSubmit(undefined, { experimental_attachments: attachments });
-
-            setAttachments([]);
-            setLocalStorageInput('');
-            resetHeight();
-
-            if (width && width > 768) {
-              textareaRef.current?.focus();
-            }
-          }
-        }
-      } else {
-        // Streaming response - consume the stream
-        if (!response.body) {
-          throw new Error('Response body is null');
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        try {
-          // eslint-disable-next-line no-constant-condition
-          while (true) {
-            // eslint-disable-next-line no-await-in-loop
-            const { done, value } = await reader.read();
-
-            if (done) {
-              break;
-            }
-
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-
-            // Keep the last incomplete line in the buffer
-            buffer = lines.pop() || '';
-
-            for (const line of lines) {
-              if (!line.trim()) {
-                continue;
-              }
-
-              try {
-                // Use the official AI SDK parser
-                const parsedPart = parseDataStreamPart(line);
-
-                type StatusData = { message: string; progress: number }
-
-                if (parsedPart.type === 'data') {
-                  const data = parsedPart.value[0] as unknown as { type: string; content?: { message: string; progress: number } | Analysis };
-
-                  if (data.type === 'status') {
-                    if (data.content) {
-                      setAnalysisStatus(data.content as StatusData);
-                    }
-                  } else if (data.type === 'error') {
-                    if (data.content) {
-                      toast.error((data.content as StatusData).message);
-                      setIsAnalyzing(false);
-                      setAnalysisStatus(null);
-
-                      return;
-                    }
-                  } else if (data.type === 'complete') {
-                    const analysisResponse = data.content as Analysis;
-
-                    // eslint-disable-next-line no-eq-null
-                    if (analysisResponse == null) {
-                      toast.error('Analysis response is null');
-
-                      return;
-                    }
-
-                    if (analysisResponse.status === 'new') {
-                      setAnalysisData?.(analysisResponse.result);
-                      setIsAnalyzed(true);
-
-                      if (analysisResponse.result) {
-                        window.history.replaceState({}, '', `/chat/${chatId}`);
-
-                        // Chat record already created in /api/analyze, no need to send analyzedPersonName
-                        handleSubmit(undefined, { experimental_attachments: attachments });
-
-                        setAttachments([]);
-                        setLocalStorageInput('');
-                        resetHeight();
-
-                        if (width && width > 768) {
-                          textareaRef.current?.focus();
-                        }
-                      }
-                    }
-                  }
-                }
-              } catch (parseError) {
-                // Skip invalid lines (might be incomplete chunks)
-                // Only log if it's not an empty line
-                if (line.trim()) {
-                  console.debug('Skipping unparseable stream line:', line);
-                }
-              }
-            }
-          }
-        } finally {
-          reader.releaseLock();
-        }
-      }
-    } catch (error) {
-      toast.error('Failed to process request');
-      console.error('Error in handleNameSubmit:', error);
-    } finally {
-      setIsAnalyzing(false);
-      setAnalysisStatus(null);
-    }
-  }, [attachments, chatId, handleSubmit, input, setAnalysisData, setAttachments, setLocalStorageInput, width]);
+  }, [input, handleAnalysisSubmit, setLocalStorageInput, width]);
 
   if (messages.length === 0) {
     return (
@@ -514,6 +378,10 @@ export const MultimodalInput = memo(
     }
 
     if (prevProps.isAnalyzing !== nextProps.isAnalyzing) {
+      return false;
+    }
+
+    if (!equal(prevProps.analysisStatus, nextProps.analysisStatus)) {
       return false;
     }
 

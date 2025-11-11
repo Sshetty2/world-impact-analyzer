@@ -3,10 +3,10 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { search } from 'fast-fuzzy';
 import { createDataStreamResponse } from 'ai';
+import wiki from 'wikipedia';
 
 import { auth } from '@/app/(auth)/auth';
 import { analyzeHistoricalFigure } from '@/lib/ai/analyze';
-import { fetchLambdaWithRetry } from '@/lib/ai/fetchLambdaWithRetry';
 import { getCachedAnalysis, saveAnalysisToCache, saveChat } from '@/lib/db/queries';
 import { summarizeWikiContent } from '@/lib/ai/summarize';
 import type {
@@ -25,7 +25,10 @@ const RequestSchema = z.object({
     .trim(),
   chatId: z
     .string()
-    .uuid('Valid chat ID is required')
+    .uuid('Valid chat ID is required'),
+  slug: z
+    .string()
+    .optional()
 });
 
 const hasEnhancedBioMarkers = (content: string, name: string): boolean => {
@@ -89,7 +92,7 @@ export async function POST (request: Request) {
       );
     }
 
-    const { personName, chatId } = validation.data;
+    const { personName, chatId, slug } = validation.data;
 
     // 1️⃣ Check Cache (before streaming starts)
     try {
@@ -126,29 +129,11 @@ export async function POST (request: Request) {
           let wikiContent: string;
 
           try {
-            const lambdaUrl = `${process.env.AWS_LAMBDA_GATEWAY_URL}/world-impact-analysis`;
+            // Fetch Wikipedia page using slug if available, otherwise use personName
+            const page = slug ? await wiki.page(slug) : await wiki.page(personName);
 
-            if (!lambdaUrl) {
-              throw new Error('AWS_LAMBDA_GATEWAY_URL is not configured');
-            }
-
-            const lambdaResponse = await fetchLambdaWithRetry(lambdaUrl, {
-              method : 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body   : JSON.stringify({ personName })
-            });
-
-            if (!lambdaResponse.ok) {
-              throw new Error(`Lambda returned status ${lambdaResponse.status}`);
-            }
-
-            const lambdaData = await lambdaResponse.json();
-
-            if (!lambdaData.success || !lambdaData.content) {
-              throw new Error(lambdaData.error || 'Lambda failed to fetch Wikipedia content');
-            }
-
-            wikiContent = lambdaData.content;
+            // Get the full content of the page
+            wikiContent = await page.content();
 
             if (!wikiContent || wikiContent.length === 0) {
               dataStream.writeData({

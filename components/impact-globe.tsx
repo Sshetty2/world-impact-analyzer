@@ -26,6 +26,7 @@ function getContinentName(code: string | undefined): string {
 export type PersonPin = {
   id: string;
   name: string;
+  slug?: string;
   lat: number;
   lon: number;
   color?: string;
@@ -81,7 +82,6 @@ export default function ImpactGlobe({
 
   // Auto-rotate the globe
   useEffect(() => {
-    console.log('autoRotateSpeed', autoRotateSpeed);
     if (globeEl.current) {
       globeEl.current.controls().autoRotate = autoRotateSpeed > 0;
       globeEl.current.controls().autoRotateSpeed = autoRotateSpeed;
