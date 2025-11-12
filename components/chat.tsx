@@ -262,7 +262,7 @@ export function Chat ({
         // eslint-disable-next-line no-shadow
         const analysisResponse = await response.json();
 
-        if (analysisResponse.status === 'existing') {
+        if (analysisResponse?.status === 'existing') {
           setAnalysisData(analysisResponse.result);
 
           if (analysisResponse.result) {
@@ -333,7 +333,7 @@ export function Chat ({
                       return;
                     }
 
-                    if (analysisResponse.status === 'new') {
+                    if (analysisResponse?.status === 'new') {
                       setAnalysisData(analysisResponse.result);
 
                       if (analysisResponse.result) {
