@@ -3,6 +3,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { Globe as GlobeIcon, Pause } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
 
 // Dynamically import Globe to avoid SSR issues
 const Globe = dynamic(() => import('react-globe.gl'), { ssr: false });
@@ -63,6 +65,8 @@ export default function ImpactGlobe ({
     height: 0
   });
   const [hoveredPoint, setHoveredPoint] = useState<PersonPin | null>(null);
+  const [isRotationEnabled, setIsRotationEnabled] = useState(true);
+  const [rotationSpeed, setRotationSpeed] = useState(autoRotateSpeed);
   const lastClickRef = useRef<{ time: number; personId: string } | null>(null);
 
   // Measure container dimensions
@@ -94,10 +98,10 @@ export default function ImpactGlobe ({
   // Auto-rotate the globe
   useEffect(() => {
     if (globeEl.current) {
-      globeEl.current.controls().autoRotate = autoRotateSpeed > 0;
-      globeEl.current.controls().autoRotateSpeed = autoRotateSpeed;
+      globeEl.current.controls().autoRotate = isRotationEnabled && rotationSpeed > 0;
+      globeEl.current.controls().autoRotateSpeed = rotationSpeed;
     }
-  }, [autoRotateSpeed, globeEl.current]);
+  }, [rotationSpeed, isRotationEnabled, globeEl.current]);
 
   // Set initial camera position
   useEffect(() => {
@@ -180,7 +184,7 @@ export default function ImpactGlobe ({
               setHoveredPoint(point as PersonPin | null);
 
               if (globeEl.current) {
-                globeEl.current.controls().autoRotate = !point && autoRotateSpeed > 0;
+                globeEl.current.controls().autoRotate = !point && isRotationEnabled && rotationSpeed > 0;
               }
             }}
 
@@ -221,6 +225,39 @@ export default function ImpactGlobe ({
               )}
             </div>
           )}
+
+          {/* Rotation controls */}
+          <div className="absolute bottom-4 left-0 right-0 z-50 flex items-center justify-center gap-4 px-4">
+            {/* Rotation speed slider */}
+            <div className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/90 px-4 py-2.5 shadow-lg backdrop-blur-sm">
+              <span className="text-xs font-medium text-zinc-400">Speed</span>
+              <Slider
+                value={[rotationSpeed]}
+                onValueChange={(values) => setRotationSpeed(values[0])}
+                min={0}
+                max={2}
+                step={0.1}
+                className="w-32"
+              />
+              <span className="min-w-[2.5rem] text-xs font-medium text-zinc-300">
+                {rotationSpeed.toFixed(1)}x
+              </span>
+            </div>
+
+            {/* Auto-rotation toggle button */}
+            <button
+              onClick={() => setIsRotationEnabled(!isRotationEnabled)}
+              className="rounded-lg border border-zinc-800 bg-zinc-900/90 p-3.5 shadow-lg backdrop-blur-sm transition-all hover:bg-zinc-800/90 hover:border-zinc-700"
+              title={isRotationEnabled ? 'Pause rotation' : 'Start rotation'}
+              aria-label={isRotationEnabled ? 'Pause rotation' : 'Start rotation'}
+            >
+              {isRotationEnabled ? (
+                <Pause className="size-5 text-zinc-300" />
+              ) : (
+                <GlobeIcon className="size-5 text-zinc-300" />
+              )}
+            </button>
+          </div>
         </>
       )}
     </div>
