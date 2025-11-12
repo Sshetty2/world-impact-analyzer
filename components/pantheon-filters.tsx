@@ -8,6 +8,7 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { Check } from 'lucide-react';
 import type { PantheonFilters } from '@/app/api/pantheon/people/route';
 import type { FilterOptions } from '@/app/api/pantheon/filter-options/route';
+import { getEraInfo, sortEras } from '@/lib/constants/eras';
 
 // Continent code to display name mapping
 const CONTINENT_NAMES: Record<string, string> = {
@@ -195,7 +196,7 @@ export default function PantheonFilters ({ onFiltersChange, initialFilters }: Pr
               <Tooltip.Root>
                 <Tooltip.Trigger asChild>
                   <Checkbox.Root
-                    className="flex size-4 appearance-none items-center justify-center rounded border border-zinc-700 bg-zinc-800 hover:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500 data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600"
+                    className="flex size-4 appearance-none items-center justify-center rounded border-2 border-blue-500/50 bg-zinc-800 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600"
                     checked={selectedContinents.length === filterOptions.continents.length}
                     onCheckedChange={checked => {
                       setSelectedContinents(checked ? [...filterOptions.continents] : []);
@@ -218,7 +219,7 @@ export default function PantheonFilters ({ onFiltersChange, initialFilters }: Pr
               </Tooltip.Root>
               <h3 className="text-sm font-medium text-zinc-300">Continent</h3>
             </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 md:grid-cols-3 lg:grid-cols-4">
               {filterOptions.continents.map(continent => (
                 <CheckboxItem
                   key={continent}
@@ -242,7 +243,7 @@ export default function PantheonFilters ({ onFiltersChange, initialFilters }: Pr
               <Tooltip.Root>
                 <Tooltip.Trigger asChild>
                   <Checkbox.Root
-                    className="flex size-4 appearance-none items-center justify-center rounded border border-zinc-700 bg-zinc-800 hover:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500 data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600"
+                    className="flex size-4 appearance-none items-center justify-center rounded border-2 border-blue-500/50 bg-zinc-800 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600"
                     checked={selectedDomains.length === filterOptions.domains.length}
                     onCheckedChange={checked => {
                       setSelectedDomains(checked ? [...filterOptions.domains] : []);
@@ -265,7 +266,7 @@ export default function PantheonFilters ({ onFiltersChange, initialFilters }: Pr
               </Tooltip.Root>
               <h3 className="text-sm font-medium text-zinc-300">Domain</h3>
             </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 md:grid-cols-3 lg:grid-cols-4">
               {filterOptions.domains.map(domain => (
                 <CheckboxItem
                   key={domain}
@@ -289,7 +290,7 @@ export default function PantheonFilters ({ onFiltersChange, initialFilters }: Pr
               <Tooltip.Root>
                 <Tooltip.Trigger asChild>
                   <Checkbox.Root
-                    className="flex size-4 appearance-none items-center justify-center rounded border border-zinc-700 bg-zinc-800 hover:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500 data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600"
+                    className="flex size-4 appearance-none items-center justify-center rounded border-2 border-blue-500/50 bg-zinc-800 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600"
                     checked={selectedEras.length === filterOptions.eras.length}
                     onCheckedChange={checked => {
                       setSelectedEras(checked ? [...filterOptions.eras] : []);
@@ -312,21 +313,27 @@ export default function PantheonFilters ({ onFiltersChange, initialFilters }: Pr
               </Tooltip.Root>
               <h3 className="text-sm font-medium text-zinc-300">Era</h3>
             </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-              {filterOptions.eras.map(era => (
-                <CheckboxItem
-                  key={era}
-                  label={era}
-                  checked={selectedEras.includes(era)}
-                  onCheckedChange={checked => {
-                    if (checked) {
-                      setSelectedEras([...selectedEras, era]);
-                    } else {
-                      setSelectedEras(selectedEras.filter(e => e !== era));
-                    }
-                  }}
-                />
-              ))}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 md:grid-cols-3 lg:grid-cols-4">
+              {sortEras(filterOptions.eras).map(era => {
+                const eraInfo = getEraInfo(era);
+
+                return (
+                  <EraCheckboxItem
+                    key={era}
+                    eraCode={era}
+                    label={eraInfo.label}
+                    dateRange={eraInfo.dateRange}
+                    checked={selectedEras.includes(era)}
+                    onCheckedChange={checked => {
+                      if (checked) {
+                        setSelectedEras([...selectedEras, era]);
+                      } else {
+                        setSelectedEras(selectedEras.filter(e => e !== era));
+                      }
+                    }}
+                  />
+                );
+              })}
             </div>
           </div>
 
@@ -440,6 +447,43 @@ function CheckboxItem ({
         onClick={() => onCheckedChange(!checked)}>
         {label}
       </label>
+    </div>
+  );
+}
+
+// Era checkbox component with date range display
+function EraCheckboxItem ({
+  eraCode,
+  label,
+  dateRange,
+  checked,
+  onCheckedChange
+}: {
+  eraCode: string;
+  label: string;
+  dateRange: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center space-x-2">
+      <Checkbox.Root
+        className="flex size-4 appearance-none items-center justify-center rounded border border-zinc-700 bg-zinc-800 hover:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500 data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600"
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+      >
+        <Checkbox.Indicator className="text-white">
+          <Check className="size-3" />
+        </Checkbox.Indicator>
+      </Checkbox.Root>
+      <div
+        className="flex flex-1 cursor-pointer select-none flex-col"
+        onClick={() => onCheckedChange(!checked)}>
+        <span className="text-sm text-zinc-300">{label}</span>
+        {dateRange && (
+          <span className="text-xs text-zinc-500">{dateRange}</span>
+        )}
+      </div>
     </div>
   );
 }
