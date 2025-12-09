@@ -227,19 +227,19 @@ export default function ImpactGlobe ({
           )}
 
           {/* Rotation controls */}
-          <div className="absolute bottom-4 left-0 right-0 z-50 flex items-center justify-center gap-4 px-4">
+          <div className="absolute inset-x-0 bottom-4 z-50 flex items-center justify-center gap-4 px-4">
             {/* Rotation speed slider */}
             <div className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/90 px-4 py-2.5 shadow-lg backdrop-blur-sm">
               <span className="text-xs font-medium text-zinc-400">Speed</span>
               <Slider
                 value={[rotationSpeed]}
-                onValueChange={(values) => setRotationSpeed(values[0])}
+                onValueChange={values => setRotationSpeed(values[0])}
                 min={0}
                 max={2}
                 step={0.1}
                 className="w-32"
               />
-              <span className="min-w-[2.5rem] text-xs font-medium text-zinc-300">
+              <span className="min-w-10 text-xs font-medium text-zinc-300">
                 {rotationSpeed.toFixed(1)}x
               </span>
             </div>
@@ -247,7 +247,7 @@ export default function ImpactGlobe ({
             {/* Auto-rotation toggle button */}
             <button
               onClick={() => setIsRotationEnabled(!isRotationEnabled)}
-              className="rounded-lg border border-zinc-800 bg-zinc-900/90 p-3.5 shadow-lg backdrop-blur-sm transition-all hover:bg-zinc-800/90 hover:border-zinc-700"
+              className="rounded-lg border border-zinc-800 bg-zinc-900/90 p-3.5 shadow-lg backdrop-blur-sm transition-all hover:border-zinc-700 hover:bg-zinc-800/90"
               title={isRotationEnabled ? 'Pause rotation' : 'Start rotation'}
               aria-label={isRotationEnabled ? 'Pause rotation' : 'Start rotation'}
             >
